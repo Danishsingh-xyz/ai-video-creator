@@ -7,25 +7,33 @@
 </head>
 <body>
     <h1>AI Voice Generator</h1>
+
+    <!-- Input text and select voice -->
     <label for="text">Enter Text:</label>
     <input type="text" id="text" placeholder="Type something...">
     
     <label for="voice">Select Voice:</label>
     <select id="voice">
         <option value="facebook/mms-tts-eng">Voice 1 (Default)</option>
-        <option value="another-tts-model">Voice 2 (Alternative)</option>
+        <option value="coqui/XTTS-v2">Voice 2 (Alternative)</option>
     </select>
 
     <button onclick="generateAudio()">Generate</button>
+
+    <!-- Audio output -->
     <audio id="audio" controls></audio>
 
     <script>
         async function generateAudio() {
             const text = document.getElementById("text").value;
             const voice = document.getElementById("voice").value;
-            const API_KEY = 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;
+            const API_KEY = "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";  // Insert your actual Hugging Face API Key here
 
-            const response = await fetch(`https://api-inference.huggingface.co/models/${voice}`, {
+            // Hugging Face API endpoint
+            const API_URL = `https://api-inference.huggingface.co/models/${voice}`;
+            
+            // Send a POST request to the model's API
+            const response = await fetch(API_URL, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${API_KEY}`,
