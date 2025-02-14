@@ -49,7 +49,10 @@
     </div>
 
     <script>
-        document.getElementById('generate-btn').addEventListener('click', generateAudio);
+        // Add the event listener to the button after the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('generate-btn').addEventListener('click', generateAudio);
+        });
 
         async function generateAudio() {
             const text = document.getElementById('text-input').value;
@@ -91,4 +94,3 @@
     </script>
 </body>
 </html>
-
