@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Video Creator</title>
+    <title>Text-to-Speech and Image Search Tool</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,23 +19,22 @@
             background-color: #4CAF50;
             color: white;
         }
-        img {
-            max-width: 300px;
-            margin: 10px;
+        .output-container {
+            margin-top: 20px;
         }
-        video {
-            max-width: 500px;
-            margin: 10px;
+        #image-output img {
+            max-width: 100%;
+            height: auto;
         }
     </style>
 </head>
 <body>
 
-    <h1>AI Video Creator</h1>
+    <h1>Text-to-Speech and Image Search</h1>
     
     <!-- Input text area -->
-    <textarea id="input-text" rows="4" placeholder="Enter text to convert to speech and fetch images..."></textarea><br><br>
-
+    <textarea id="input-text" rows="4" placeholder="Enter text to convert to speech and search for images..."></textarea>
+    
     <!-- Voice selection dropdown -->
     <label for="voice-selector">Select Voice:</label>
     <select id="voice-selector">
@@ -44,108 +43,74 @@
         <option value="US English Male">US English Male</option>
         <option value="US English Female">US English Female</option>
         <option value="Australian Male">Australian Male</option>
-    </select><br><br>
+    </select>
 
-    <!-- Button to generate both audio and images -->
-    <button onclick="generateContent()">Generate</button>
+    <!-- Button to generate speech and fetch images -->
+    <button onclick="generateContent()">Generate Audio and Fetch Images</button>
 
-    <h3>Generated Audio:</h3>
-    <audio id="audio-output" controls></audio><br><br>
-
-    <h3>Generated Images:</h3>
-    <div id="images"></div>
+    <div class="output-container">
+        <!-- Generated Audio -->
+        <h3>Generated Audio:</h3>
+        <audio id="audio-output" controls></audio>
+        
+        <!-- Image Output -->
+        <h3>Fetched Images:</h3>
+        <div id="image-output"></div>
+    </div>
 
     <!-- ResponsiveVoice Script -->
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
-        const UNSPLASH_API_KEY = 'ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0';  // Replace with your Unsplash API key
+        // Google Custom Search API key and CX ID
+        const apiKey = 'AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog';
+        const cxId = '9128389fe7f334212';
 
         // Function to generate audio and fetch images
-        async function generateContent() {
+        function generateContent() {
             const text = document.getElementById("input-text").value;
             const voice = document.getElementById("voice-selector").value;
 
-            // Step 1: Generate Audio
+            // Step 1: Generate Speech using ResponsiveVoice
             generateAudio(text, voice);
 
-            // Step 2: Extract keywords and fetch images from Unsplash
-            try {
-                const keywords = extractKeywords(text);
-                const images = await fetchImages(keywords);
-                displayImages(images);
-            } catch (error) {
-                console.error('Error fetching images:', error);
-                alert('Failed to fetch images.');
-            }
+            // Step 2: Fetch Images using Google Custom Search API
+            fetchImages(text);
         }
 
-        // Function to generate audio (TTS)
+        // Function to generate audio using ResponsiveVoice
         function generateAudio(text, voice) {
-            // Generate speech using ResponsiveVoice API
-            if (text) {
-                responsiveVoice.speak(text, voice, {
-                    onend: function() {
-                        console.log("Audio finished");
-                    },
-                    onstart: function() {
-                        console.log("Audio started");
-                    }
-                });
-            } else {
-                alert("Please enter some text to convert to speech.");
-            }
-        }
-
-        // Function to extract relevant keywords from the input text
-        function extractKeywords(text) {
-            const stopwords = ['a', 'an', 'the', 'and', 'is', 'in', 'on', 'at', 'for', 'of', 'with'];  // Common stopwords
-            const words = text.split(' ').filter(word => !stopwords.includes(word.toLowerCase()));
-            return words;
-        }
-
-        // Function to fetch images from Unsplash based on keywords
-        async function fetchImages(keywords) {
-            let images = [];
-
-            for (const keyword of keywords) {
-                const query = encodeURIComponent(keyword);
-                const url = `https://api.unsplash.com/photos/random?query=${query}&client_id=${UNSPLASH_API_KEY}&count=3`;  // Fetch 3 images for each keyword
-
-                const response = await fetch(url);
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch images');
+            responsiveVoice.speak(text, voice, {
+                onstart: function () {
+                    console.log("Audio started...");
+                },
+                onend: function () {
+                    console.log("Audio ended...");
                 }
-
-                const data = await response.json();
-
-                if (data && data.length > 0) {
-                    images = images.concat(data.map(item => item.urls.small));  // Add fetched images to the list
-                }
-            }
-
-            if (images.length === 0) {
-                images = ['https://via.placeholder.com/300'];  // Fallback image if no relevant images are found
-            }
-
-            return images;
-        }
-
-        // Function to display the fetched images
-        function displayImages(images) {
-            const imagesDiv = document.getElementById("images");
-            imagesDiv.innerHTML = '';  // Clear previous images
-            images.forEach(imageUrl => {
-                const img = document.createElement('img');
-                img.src = imageUrl;
-                img.alt = 'Generated Image';
-                imagesDiv.appendChild(img);
             });
         }
-    </script>
 
+        // Function to fetch images using Google Custom Search API
+        function fetchImages(query) {
+            const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&cx=${cxId}&key=${apiKey}&searchType=image`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.items && data.items.length > 0) {
+                        // Display the first image result
+                        const imgContainer = document.getElementById("image-output");
+                        imgContainer.innerHTML = `<img src="${data.items[0].link}" alt="Image">`;
+                    } else {
+                        document.getElementById("image-output").innerHTML = "<p>No images found.</p>";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching images:", error);
+                    document.getElementById("image-output").innerHTML = "<p>Error fetching images.</p>";
+                });
+        }
+    </script>
 </body>
 </html>
-
 
