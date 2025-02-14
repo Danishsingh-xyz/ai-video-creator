@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Voice Generator</title>
+    <title>Text-to-Speech with Multiple Voices</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        input, select, button {
+        textarea, select, button {
             padding: 10px;
             margin: 10px;
+            width: 100%;
         }
         button {
             cursor: pointer;
@@ -22,74 +23,62 @@
 </head>
 <body>
 
-    <h1>Text-to-Speech AI Tool</h1>
+    <h1>Text-to-Speech Tool</h1>
     
-    <!-- Input field for text -->
-    <textarea id="input-text" rows="4" cols="50" placeholder="Enter your text here..."></textarea>
+    <!-- Input text area -->
+    <textarea id="input-text" rows="4" placeholder="Enter text to convert to speech..."></textarea>
     
-    <!-- Voice options dropdown -->
+    <!-- Voice selection dropdown -->
     <label for="voice-selector">Select Voice:</label>
     <select id="voice-selector">
-        <option value="en_us_male">English (US) Male</option>
-        <option value="en_uk_male">English (UK) Male</option>
-        <option value="en_us_female">English (US) Female</option>
-        <option value="en_uk_female">English (UK) Female</option>
+        <option value="UK English Male">UK English Male</option>
+        <option value="UK English Female">UK English Female</option>
+        <option value="US English Male">US English Male</option>
+        <option value="US English Female">US English Female</option>
     </select>
 
-    <!-- Button to generate audio -->
+    <!-- Button to generate speech -->
     <button onclick="generateAudio()">Generate Audio</button>
-    
+
     <h3>Generated Audio:</h3>
     <audio id="audio-output" controls></audio>
 
+    <!-- Add ResponsiveVoice script -->
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
+
     <script>
-        const model = 'keithito/tacotron2'; // Model name you want to use
-
-        async function generateAudio() {
+        function generateAudio() {
             const text = document.getElementById("input-text").value; 
-            const voice = document.getElementById("voice-selector").value; 
-            const apiUrl = `https://api-inference.huggingface.co/models/${model}`;
+            const voice = document.getElementById("voice-selector").value;
 
-            const headers = {
-                'Authorization': 'Bearer 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', // Replace with your key
-                'Content-Type': 'application/json'
-            };
-
-            const body = JSON.stringify({
-                inputs: text,
-                voice: voice 
-            });
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: headers,
-                    body: body
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error generating audio: ${response.statusText} (${response.status})`);
-                }
-
-                const result = await response.json();
-                console.log(result);  // Log the response to check the audio URL or any errors
-                
-                // Assuming the response contains a field `audio_url`
-                if (result.audio_url) {
-                    const audioUrl = result.audio_url;
-                    const audioElement = document.getElementById("audio-output");
-                    audioElement.src = audioUrl;
-                    audioElement.play();
-                } else {
-                    throw new Error('No audio URL returned');
-                }
-
-            } catch (error) {
-                console.error('Error generating audio:', error);
-                alert('Error generating audio: ' + error.message);
+            // Map the selected voice to ResponsiveVoice's predefined voices
+            let voiceOption = '';
+            switch (voice) {
+                case 'UK English Male':
+                    voiceOption = 'UK English Male';
+                    break;
+                case 'UK English Female':
+                    voiceOption = 'UK English Female';
+                    break;
+                case 'US English Male':
+                    voiceOption = 'US English Male';
+                    break;
+                case 'US English Female':
+                    voiceOption = 'US English Female';
+                    break;
             }
+
+            // Generate the speech using ResponsiveVoice
+            responsiveVoice.speak(text, voiceOption, {
+                rate: 1, // Set speech speed
+                pitch: 1, // Set pitch
+                volume: 1, // Set volume
+                onend: function() {
+                    alert("Speech has finished!");
+                }
+            });
         }
     </script>
-
 </body>
 </html>
+
