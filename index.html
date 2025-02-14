@@ -3,46 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Audio Generator</title>
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
+    <title>AI Video Creator</title>
 </head>
 <body>
+    <h1>AI Video and Audio Generator</h1>
 
-    <h1>AI Audio Generator</h1>
-    
-    <textarea id="text-input" rows="5" cols="40" placeholder="Enter your text here"></textarea><br><br>
-    
-    <label for="voice-select">Choose a voice:</label>
-    <select id="voice-select">
-        <option value="US English Male">US English Male</option>
-        <option value="US English Female">US English Female</option>
-        <option value="UK English Male">UK English Male</option>
-        <option value="UK English Female">UK English Female</option>
-        <option value="Australian Female">Australian Female</option>
-        <option value="German Female">German Female</option>
-        <option value="French Female">French Female</option>
-        <option value="Spanish Female">Spanish Female</option>
-        <!-- Add more voices if needed -->
-    </select><br><br>
+    <div>
+        <label for="text-input">Enter Text:</label>
+        <textarea id="text-input" rows="4" cols="50"></textarea>
+    </div>
 
-    <button onclick="generateAudio()">Generate Audio</button>
+    <div>
+        <button id="generate-btn">Generate Audio</button>
+    </div>
 
-    <div id="audio-output"></div>
+    <div>
+        <audio id="audio-output" controls></audio>
+    </div>
+
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
-        function generateAudio() {
-            const textInput = document.getElementById('text-input').value;
-            const voiceSelection = document.getElementById('voice-select').value;
+        document.getElementById('generate-btn').addEventListener('click', function() {
+            var text = document.getElementById('text-input').value;
 
-            if (!textInput) {
-                alert("Please enter some text!");
-                return;
-            }
+            // Call the Bark model API
+            generateAudio(text);
+        });
 
-            // Use ResponsiveVoice to generate audio
-            responsiveVoice.speak(textInput, voiceSelection);
+        function generateAudio(text) {
+            const apiKey = "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"; // Replace with your API key
+            const model = "bark"; // Bark model
+
+            const url = `https://api-inference.huggingface.co/models/${model}`;
+
+            // Request data
+            const requestData = {
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json"
+                },
+                method: "POST",
+                body: JSON.stringify({ inputs: text })
+            };
+
+            fetch(url, requestData)
+                .then(response => response.blob())
+                .then(blob => {
+                    const audioUrl = URL.createObjectURL(blob);
+                    const audioElement = document.getElementById('audio-output');
+                    audioElement.src = audioUrl;
+                    audioElement.play();
+                })
+                .catch(error => {
+                    console.error("Error generating audio:", error);
+                    alert("Error generating audio");
+                });
         }
     </script>
-
 </body>
 </html>
+
