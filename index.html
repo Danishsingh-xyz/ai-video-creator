@@ -13,6 +13,11 @@
       const textInput = document.getElementById('text-input').value;
       const voiceSelection = document.getElementById('voice-select').value;
       
+      if (!textInput) {
+        alert("Please enter some text!");
+        return;
+      }
+
       // Make the request to the Hugging Face API with a CORS proxy
       const response = await fetch(cors_proxy + api_url, {
         method: 'POST',
@@ -34,35 +39,4 @@
         const audioElement = new Audio(audioUrl);
         audioElement.controls = true;
         document.getElementById('audio-output').innerHTML = '';
-        document.getElementById('audio-output').appendChild(audioElement);
-        audioElement.play();
-      } else {
-        console.error('Error generating audio:', response.statusText);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('generate-button').addEventListener('click', generateAudio);
-    });
-  </script>
-</head>
-<body>
-  <div>
-    <label for="text-input">Enter Text:</label>
-    <input type="text" id="text-input" placeholder="Enter text to generate speech">
-  </div>
-  <div>
-    <label for="voice-select">Choose a Voice:</label>
-    <select id="voice-select">
-      <option value="en_us_1">English (US) - Voice 1</option>
-      <option value="en_us_2">English (US) - Voice 2</option>
-      <!-- Add more options if available from Coqui -->
-    </select>
-  </div>
-  <div>
-    <button id="generate-button">Generate Audio</button>
-  </div>
-  <div id="audio-output"></div>
-</body>
-</html>
-
+        document.getElementById('audio-
