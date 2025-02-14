@@ -6,67 +6,72 @@
   <title>AI Voice Generator</title>
 </head>
 <body>
-  <h1>AI Voice Generation Demo</h1>
+  <h1>AI Voice Generation</h1>
 
   <!-- Text input area -->
   <textarea id="text-input" placeholder="Enter text here..." rows="5" cols="50"></textarea><br><br>
 
-  <!-- Voice selection -->
+  <!-- Voice selection dropdown -->
   <label for="voice-selection">Choose a voice:</label>
   <select id="voice-selection">
-    <option value="en_us_male">English (Male)</option>
-    <option value="en_us_female">English (Female)</option>
-    <!-- Add more voice options as needed -->
+    <option value="en_us_male">English (US) Male</option>
+    <option value="en_us_female">English (US) Female</option>
+    <option value="en_gb_male">English (UK) Male</option>
+    <option value="en_gb_female">English (UK) Female</option>
+    <option value="de_de_male">German Male</option>
+    <option value="de_de_female">German Female</option>
+    <option value="fr_fr_male">French Male</option>
+    <option value="fr_fr_female">French Female</option>
   </select><br><br>
 
   <!-- Button to trigger speech generation -->
   <button onclick="generateAudio()">Generate Speech</button><br><br>
 
-  <!-- Audio player -->
+  <!-- Audio player to play the generated speech -->
   <audio id="audio-player" controls></audio>
 
-  <script src="app.js"></script>
+  <!-- JavaScript code to handle TTS generation -->
+  <script>
+    const elevenLabsAPIKey = "ysk_ed7cbd21f0328c94cac3989aeb08ac25172705ccd9c5052b";  // Replace with your Eleven Labs API key
+
+    // Function to generate audio based on text and selected voice
+    function generateAudio() {
+      const text = document.getElementById("text-input").value;
+      const voiceChoice = document.getElementById("voice-selection").value;
+
+      if (!text) {
+        alert("Please enter some text to convert to speech.");
+        return;
+      }
+
+      fetch("https://api.elevenlabs.io/v1/text-to-speech", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${elevenLabsAPIKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          text: text,
+          voice: voiceChoice,
+          quality: "high"
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to generate audio. Please try again.");
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        const audioUrl = URL.createObjectURL(blob);
+        document.getElementById("audio-player").src = audioUrl;
+      })
+      .catch(error => {
+        console.error("Error generating audio:", error);
+        alert("There was an error generating the audio. Please try again.");
+      });
+    }
+  </script>
 </body>
 </html>
-// Your ElevenLabs API key
-const elevenLabsAPIKey = "sk_ed7cbd21f0328c94cac3989aeb08ac25172705ccd9c5052b";  // Replace with your actual API key
 
-// Function to generate TTS with ElevenLabs
-function generateAudio() {
-  const text = document.getElementById("text-input").value;  // Get the entered text
-  const voiceChoice = document.getElementById("voice-selection").value;  // Get the selected voice
-
-  if (!text) {
-    alert("Please enter some text to convert to speech.");
-    return;
-  }
-
-  // Fetch API request to ElevenLabs for TTS
-  fetch("https://api.elevenlabs.io/v1/text-to-speech", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${elevenLabsAPIKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      text: text,
-      voice: voiceChoice,  // The voice ID selected by the user
-      quality: "high"  // Optionally specify quality
-    })
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error("Failed to generate audio. Please try again.");
-    }
-    return response.blob();  // Convert the response to a Blob (audio file)
-  })
-  .then(blob => {
-    // Create an object URL for the Blob and set it as the source of the audio player
-    const audioUrl = URL.createObjectURL(blob);
-    document.getElementById("audio-player").src = audioUrl;
-  })
-  .catch(error => {
-    console.error("Error generating audio:", error);
-    alert("There was an error generating the audio. Please try again.");
-  });
-}
