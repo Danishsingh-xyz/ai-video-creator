@@ -82,4 +82,20 @@
       generateAudio(prompt);
 
       // Fetch media (images and videos) based on the prompt
-      fetchMediaFromUnsplash(
+      fetchMediaFromUnsplash(prompt);
+    }
+  </script>
+</head>
+<body>
+  <h1>AI Tool - TTS + Media Fetching</h1>
+
+  <!-- Combined Prompt Input Section -->
+  <h2>Enter your prompt (for both text-to-speech and image/video fetch)</h2>
+  <input type="text" id="prompt-input" placeholder="Enter a keyword (e.g., car, beach, people)">
+  <button onclick="handlePromptSubmit()">Generate</button>
+
+  <!-- Image Section -->
+  <div id="image-container" style="margin-top: 20px;"></div>
+
+</body>
+</html>
