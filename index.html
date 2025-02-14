@@ -25,14 +25,14 @@
   </select><br><br>
 
   <!-- Button to trigger speech generation -->
-  <button onclick="generateAudio()">Generate Speech</button><br><br>
+  <button id="generate-button">Generate Speech</button><br><br>
 
   <!-- Audio player to play the generated speech -->
   <audio id="audio-player" controls></audio>
 
   <!-- JavaScript code to handle TTS generation -->
   <script>
-    const elevenLabsAPIKey = "ysk_ed7cbd21f0328c94cac3989aeb08ac25172705ccd9c5052b";  // Replace with your Eleven Labs API key
+    const elevenLabsAPIKey = "sk_ed7cbd21f0328c94cac3989aeb08ac25172705ccd9c5052b";  // Replace with your Eleven Labs API key
 
     // Function to generate audio based on text and selected voice
     function generateAudio() {
@@ -71,6 +71,9 @@
         alert("There was an error generating the audio. Please try again.");
       });
     }
+
+    // Event listener to trigger the audio generation when the button is clicked
+    document.getElementById("generate-button").addEventListener("click", generateAudio);
   </script>
 </body>
 </html>
