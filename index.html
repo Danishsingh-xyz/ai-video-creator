@@ -34,7 +34,6 @@
         <option value="en_uk_male">English (UK) Male</option>
         <option value="en_us_female">English (US) Female</option>
         <option value="en_uk_female">English (UK) Female</option>
-        <!-- Add more options here if needed -->
     </select>
 
     <!-- Button to generate audio -->
@@ -44,46 +43,47 @@
     <audio id="audio-output" controls></audio>
 
     <script>
-        // Set the model you're going to use on Hugging Face
-        const model = 'keithito/tacotron2'; // This is the VCTK model
+        const model = 'keithito/tacotron2'; // You can change this model
 
         async function generateAudio() {
-            // Get text and voice from user input
             const text = document.getElementById("input-text").value; 
             const voice = document.getElementById("voice-selector").value; 
-
             const apiUrl = `https://api-inference.huggingface.co/models/${model}`;
-            
+
             const headers = {
-                'Authorization': 'Bearer YOUR_HUGGING_FACE_API_KEY', // Replace with your actual API key
+                'Authorization': 'Bearer YOUR_HUGGING_FACE_API_KEY', 
                 'Content-Type': 'application/json'
             };
-            
+
             const body = JSON.stringify({
                 inputs: text,
-                voice: voice // Selecting the voice based on the dropdown value
+                voice: voice 
             });
 
             try {
-                // Make a POST request to Hugging Face API
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: headers,
                     body: body
                 });
-                
+
                 if (!response.ok) {
                     throw new Error(`Error generating audio: ${response.statusText}`);
                 }
 
-                // Get the audio URL from the API response
                 const result = await response.json();
-                const audioUrl = result.audio_url;
+                console.log(result);  // Log the response to check the audio URL or any errors
+                
+                // Assuming the response contains a field `audio_url`
+                if (result.audio_url) {
+                    const audioUrl = result.audio_url;
+                    const audioElement = document.getElementById("audio-output");
+                    audioElement.src = audioUrl;
+                    audioElement.play();
+                } else {
+                    throw new Error('No audio URL returned');
+                }
 
-                // Set the audio URL to the audio element and play it
-                const audioElement = document.getElementById("audio-output");
-                audioElement.src = audioUrl;
-                audioElement.play();
             } catch (error) {
                 console.error('Error generating audio:', error);
                 alert('Error generating audio: ' + error.message);
@@ -93,4 +93,3 @@
 
 </body>
 </html>
-
