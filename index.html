@@ -14,8 +14,8 @@
     
     <label for="voice">Select Voice:</label>
     <select id="voice">
-        <option value="facebook/mms-tts-eng">Voice 1 (Default)</option>
-        <option value="coqui/XTTS-v2">Voice 2 (Alternative)</option>
+        <option value="facebook/mms-tts-eng">Voice 1 (MMS TTS Model)</option>
+        <!-- You can add more voices here if needed -->
     </select>
 
     <button onclick="generateAudio()">Generate</button>
@@ -27,39 +27,33 @@
         async function generateAudio() {
             const text = document.getElementById("text").value;
             const voice = document.getElementById("voice").value;
-            const API_KEY = "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";  // Insert your actual Hugging Face API Key here
+            const API_KEY = "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";  // Insert your Hugging Face API Key here
 
-            console.log("API Key:", API_KEY); // Debug log for API Key
-            console.log("Selected Voice:", voice); // Debug log for selected voice
-            console.log("Text entered:", text); // Debug log for entered text
-
-            // Hugging Face API endpoint
+            // Hugging Face API endpoint for selected model
             const API_URL = `https://api-inference.huggingface.co/models/${voice}`;
             
-            // Send a POST request to the model's API
-            try {
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${API_KEY}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ inputs: text })
-                });
+            // Send POST request to the model's API
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ inputs: text })
+            });
 
-                if (response.ok) {
-                    const blob = await response.blob();
-                    document.getElementById("audio").src = URL.createObjectURL(blob);
-                    console.log("Audio generated successfully!"); // Success log
-                } else {
-                    console.error("Error with API request:", response.status); // Error log
-                    alert("Error with API request. Status: " + response.status);
-                }
-            } catch (error) {
-                console.error("Fetch error:", error); // Catch network errors
-                alert("An error occurred: " + error);
+            if (response.ok) {
+                const blob = await response.blob();
+                // Log the successful response and play the audio
+                console.log("Audio generated successfully!");
+                document.getElementById("audio").src = URL.createObjectURL(blob);
+            } else {
+                // Log the error response and show an alert
+                console.error("Error: ", response.status, response.statusText);
+                alert("Failed to generate audio! Please check the console for details.");
             }
         }
     </script>
 </body>
 </html>
+
