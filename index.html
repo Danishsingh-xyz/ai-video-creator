@@ -43,7 +43,7 @@
     <audio id="audio-output" controls></audio>
 
     <script>
-        const model = 'keithito/tacotron2'; // You can change this model
+        const model = 'keithito/tacotron2'; // Model name you want to use
 
         async function generateAudio() {
             const text = document.getElementById("input-text").value; 
@@ -51,7 +51,7 @@
             const apiUrl = `https://api-inference.huggingface.co/models/${model}`;
 
             const headers = {
-                'Authorization': 'Bearer YOUR_HUGGING_FACE_API_KEY', 
+                'Authorization': 'Bearer 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', // Replace with your key
                 'Content-Type': 'application/json'
             };
 
@@ -68,7 +68,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Error generating audio: ${response.statusText}`);
+                    throw new Error(`Error generating audio: ${response.statusText} (${response.status})`);
                 }
 
                 const result = await response.json();
