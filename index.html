@@ -27,7 +27,7 @@
         async function generateAudio() {
             const text = document.getElementById("text").value;
             const voice = document.getElementById("voice").value;
-            const API_KEY = "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";  // Insert your actual Hugging Face API Key here
+            const API_KEY = "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";  // Insert your Hugging Face API Key here
 
             // Hugging Face API endpoint
             const API_URL = `https://api-inference.huggingface.co/models/${voice}`;
@@ -44,9 +44,13 @@
 
             if (response.ok) {
                 const blob = await response.blob();
+                // Log the response to see if the file is returned correctly
+                console.log("Audio generated successfully!");
                 document.getElementById("audio").src = URL.createObjectURL(blob);
             } else {
-                alert("Error: " + response.status);
+                // Log the error response to the console
+                console.error("Error: ", response.status, response.statusText);
+                alert("Failed to generate audio! Please check the console for details.");
             }
         }
     </script>
