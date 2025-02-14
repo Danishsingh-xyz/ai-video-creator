@@ -3,57 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ResponsiveVoice Text-to-Speech</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        textarea, select, button {
-            padding: 10px;
-            margin: 10px;
-            width: 100%;
-        }
-        button {
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-        }
-    </style>
+    <title>Text to Speech with Multiple Voices</title>
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 </head>
 <body>
-
-    <h1>Text-to-Speech Tool with ResponsiveVoice</h1>
+    <h1>Text to Speech with Multiple Voices</h1>
+    <textarea id="inputText" placeholder="Type your text here"></textarea><br>
     
-    <!-- Input text area -->
-    <textarea id="input-text" rows="4" placeholder="Enter text to convert to speech..."></textarea>
-    
-    <!-- Voice selection dropdown -->
-    <label for="voice-selector">Select Voice:</label>
-    <select id="voice-selector">
+    <!-- Dropdown to select voices -->
+    <select id="voiceSelect">
         <option value="UK English Male">UK English Male</option>
         <option value="UK English Female">UK English Female</option>
         <option value="US English Male">US English Male</option>
         <option value="US English Female">US English Female</option>
-        <option value="Australian Male">Australian Male</option>
-    </select>
+        <option value="Australian Female">Australian Female</option>
+        <option value="Spanish Male">Spanish Male</option>
+        <option value="French Female">French Female</option>
+        <option value="German Female">German Female</option>
+        <!-- You can add more voices here if available -->
+    </select><br>
 
-    <!-- Button to generate speech -->
     <button onclick="generateAudio()">Generate Audio</button>
-
-    <h3>Generated Audio:</h3>
-    <audio id="audio-output" controls></audio>
-
-    <!-- ResponsiveVoice Script -->
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
-
+    
     <script>
         function generateAudio() {
-            const text = document.getElementById("input-text").value;
-            const voice = document.getElementById("voice-selector").value;
+            const text = document.getElementById('inputText').value;
+            const selectedVoice = document.getElementById('voiceSelect').value;
 
-            // Generate speech using ResponsiveVoice API
-            responsiveVoice.speak(text, voice);
+            // Call responsivevoice to play the selected voice
+            responsiveVoice.speak(text, selectedVoice, {rate: 1, volume: 1});
         }
     </script>
 </body>
