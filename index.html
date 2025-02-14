@@ -8,39 +8,35 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-            text-align: center;
         }
         textarea, select, button {
             padding: 10px;
             margin: 10px;
-            width: 80%;
+            width: 100%;
         }
         button {
             cursor: pointer;
             background-color: #4CAF50;
             color: white;
-            border: none;
-            padding: 10px 20px;
         }
         .image-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-top: 20px;
         }
-        img {
-            width: 300px;
+        .image-container img {
+            width: 18%;
             height: auto;
-            margin: 10px;
-            border-radius: 8px;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
-
     <h1>AI Video Creator</h1>
     
-    <!-- Single input for both TTS & Image Generation -->
-    <textarea id="input-text" rows="4" placeholder="Enter text to generate voice & images..."></textarea>
+    <textarea id="input-text" rows="4" placeholder="Enter text to generate speech and images..."></textarea>
     
-    <!-- Voice selection dropdown -->
     <label for="voice-selector">Select Voice:</label>
     <select id="voice-selector">
         <option value="UK English Male">UK English Male</option>
@@ -49,68 +45,56 @@
         <option value="US English Female">US English Female</option>
         <option value="Australian Male">Australian Male</option>
     </select>
-
+    
     <button onclick="generateContent()">Generate</button>
-
+    
     <h3>Generated Audio:</h3>
     <audio id="audio-output" controls></audio>
-
+    
     <h3>Generated Images:</h3>
     <div class="image-container" id="image-container"></div>
-
-    <!-- ResponsiveVoice Script -->
+    
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
-
+    
     <script>
-        async function generateContent() {
+        function generateContent() {
             const text = document.getElementById("input-text").value;
             const voice = document.getElementById("voice-selector").value;
-
-            if (!text) {
-                alert("Please enter text before generating!");
-                return;
-            }
-
-            // Generate speech
+            
+            // Generate speech using ResponsiveVoice API
             responsiveVoice.speak(text, voice);
-
-            // Generate images
+            
+            // Fetch images from Google Custom Search
             fetchImages(text);
         }
 
         async function fetchImages(query) {
-            const apiKey = "AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog"; // Replace with your Google API key
-            const cx = "9128389fe7f334212"; // Replace with your Programmable Search Engine CX ID
-            const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&cx=${cx}&searchType=image&key=${apiKey}`;
-
+            const apiKey = "AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog";
+            const cx = "9128389fe7f334212";
+            const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&cx=${cx}&key=${apiKey}&searchType=image&num=5`;
+            
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-
-                console.log("API Response:", data); // Debugging: check full response
-
-                if (!data.items || data.items.length === 0) {
-                    throw new Error("No images found");
-                }
-
-                // Clear previous images
+                
                 const imageContainer = document.getElementById("image-container");
                 imageContainer.innerHTML = "";
-
-                // Display images
-                data.items.slice(0, 3).forEach(item => {
-                    const img = document.createElement("img");
-                    img.src = item.link;
-                    imageContainer.appendChild(img);
-                });
-
+                
+                if (data.items) {
+                    data.items.forEach(item => {
+                        const img = document.createElement("img");
+                        img.src = item.link;
+                        imageContainer.appendChild(img);
+                    });
+                } else {
+                    imageContainer.innerHTML = "<p>No images found.</p>";
+                }
             } catch (error) {
                 console.error("Error fetching images:", error);
-                alert("Failed to fetch images. Please try again.");
+                document.getElementById("image-container").innerHTML = "<p>Failed to fetch images.</p>";
             }
         }
     </script>
-
 </body>
 </html>
 
