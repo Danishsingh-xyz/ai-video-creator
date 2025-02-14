@@ -59,7 +59,7 @@
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
-        const UNSPLASH_API_KEY = 'YOUR_UNSPLASH_API_KEY';  // Replace with your Unsplash API key
+        const UNSPLASH_API_KEY = 'ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0';  // Replace with your Unsplash API key
 
         // Function to generate audio and fetch images
         async function generateContent() {
@@ -98,24 +98,5 @@
 
         // Function to fetch images from Unsplash
         async function fetchImages(query) {
-            const url = `https://api.unsplash.com/photos/random?query=${query}&client_id=${UNSPLASH_API_KEY}&count=5`;  // Replace 5 with the number of images you want
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.map(item => item.urls.small);  // Get the URLs of small images
-        }
-
-        // Function to display the fetched images
-        function displayImages(images) {
-            const imagesDiv = document.getElementById("images");
-            imagesDiv.innerHTML = '';  // Clear previous images
-            images.forEach(imageUrl => {
-                const img = document.createElement('img');
-                img.src = imageUrl;
-                img.alt = 'Generated Image';
-                imagesDiv.appendChild(img);
-            });
-        }
-    </script>
-
-</body>
-</html>
+            console.log('Fetching images for query:', query); // Debugging log
+            const url = `
