@@ -59,7 +59,7 @@
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
-        const UNSPLASH_API_KEY = 'YOUR_UNSPLASH_API_KEY';  // Replace with your Unsplash API key
+        const UNSPLASH_API_KEY = 'ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0';  // Replace with your Unsplash API key
 
         // Function to generate audio and fetch images
         async function generateContent() {
@@ -69,9 +69,10 @@
             // Step 1: Generate Audio
             generateAudio(text, voice);
 
-            // Step 2: Fetch Images from Unsplash
+            // Step 2: Extract keywords and fetch images from Unsplash
             try {
-                const images = await fetchImages(text);
+                const query = extractKeywords(text);
+                const images = await fetchImages(query);
                 displayImages(images);
             } catch (error) {
                 console.error('Error fetching images:', error);
@@ -96,7 +97,14 @@
             }
         }
 
-        // Function to fetch images from Unsplash
+        // Function to extract relevant keywords from the input text
+        function extractKeywords(text) {
+            // You can enhance this function to extract more specific keywords or use a more advanced NLP library for better results
+            const words = text.split(" ");
+            return words.join(",");  // Convert array into a comma-separated list of words for the Unsplash query
+        }
+
+        // Function to fetch images from Unsplash based on keywords
         async function fetchImages(query) {
             console.log('Fetching images for query:', query); // Debugging log
             const url = `https://api.unsplash.com/photos/random?query=${query}&client_id=${UNSPLASH_API_KEY}&count=5`;  // Replace 5 with the number of images you want
