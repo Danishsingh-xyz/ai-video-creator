@@ -1,80 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Voice Generator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Creator</title>
 </head>
 <body>
-  <h1>AI Voice Generation</h1>
+    <h1>AI Video Creator</h1>
+    
+    <!-- Text Input -->
+    <textarea id="text-input" placeholder="Enter your script here" rows="4" cols="50"></textarea>
+    
+    <!-- Voice Selection -->
+    <select id="voice-select">
+        <option value="voice1_id">Voice 1</option>
+        <option value="voice2_id">Voice 2</option>
+        <!-- Add more voices as needed -->
+    </select>
+    
+    <!-- Generate Button -->
+    <button onclick="generateAudio()">Generate Audio</button>
+    
+    <!-- Audio Output -->
+    <audio id="audio-player" controls></audio>
 
-  <!-- Text input area -->
-  <textarea id="text-input" placeholder="Enter text here..." rows="5" cols="50"></textarea><br><br>
+    <script>
+        // Your Eleven Labs API Key
+        const elevenLabsAPIKey = 'sk_ed7cbd21f0328c94cac3989aeb08ac25172705ccd9c5052';  // Replace with your Eleven Labs API key
 
-  <!-- Voice selection dropdown -->
-  <label for="voice-selection">Choose a voice:</label>
-  <select id="voice-selection">
-    <option value="en_us_male">English (US) Male</option>
-    <option value="en_us_female">English (US) Female</option>
-    <option value="en_gb_male">English (UK) Male</option>
-    <option value="en_gb_female">English (UK) Female</option>
-    <option value="de_de_male">German Male</option>
-    <option value="de_de_female">German Female</option>
-    <option value="fr_fr_male">French Male</option>
-    <option value="fr_fr_female">French Female</option>
-  </select><br><br>
+        // Function to generate audio with timestamps
+        function generateAudio() {
+            const text = document.getElementById("text-input").value;
+            const voiceChoice = document.getElementById("voice-select").value;  // Get the selected voice ID
 
-  <!-- Button to trigger speech generation -->
-  <button id="generate-button">Generate Speech</button><br><br>
+            // API endpoint with voice_id and timestamps support
+            const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceChoice}/with-timestamps`;
 
-  <!-- Audio player to play the generated speech -->
-  <audio id="audio-player" controls></audio>
-
-  <!-- JavaScript code to handle TTS generation -->
-  <script>
-    const elevenLabsAPIKey = "sk_ed7cbd21f0328c94cac3989aeb08ac25172705ccd9c5052b";  // Replace with your Eleven Labs API key
-
-    // Function to generate audio based on text and selected voice
-    function generateAudio() {
-      const text = document.getElementById("text-input").value;
-      const voiceChoice = document.getElementById("voice-selection").value;
-
-      if (!text) {
-        alert("Please enter some text to convert to speech.");
-        return;
-      }
-
-      fetch("https://cors-anywhere.herokuapp.com/https://api.elevenlabs.io/v1/text-to-speech", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${elevenLabsAPIKey}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          text: text,
-          voice: voiceChoice,
-          quality: "high"
-        })
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Failed to generate audio. Please try again.");
+            // API call to Eleven Labs TTS
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${elevenLabsAPIKey}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    text: text,
+                    voice: voiceChoice,
+                    quality: "high"
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Failed to generate audio. Please try again.");
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const audioUrl = URL.createObjectURL(blob);
+                document.getElementById("audio-player").src = audioUrl;  // Set the audio player source
+            })
+            .catch(error => {
+                console.error("Error generating audio:", error);
+                alert("There was an error generating the audio. Please try again.");
+            });
         }
-        return response.blob();
-      })
-      .then(blob => {
-        const audioUrl = URL.createObjectURL(blob);
-        document.getElementById("audio-player").src = audioUrl;
-      })
-      .catch(error => {
-        console.error("Error generating audio:", error);
-        alert("There was an error generating the audio. Please try again.");
-      });
-    }
-
-    // Event listener to trigger the audio generation when the button is clicked
-    document.getElementById("generate-button").addEventListener("click", generateAudio);
-  </script>
+    </script>
 </body>
 </html>
-
