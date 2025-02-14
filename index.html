@@ -4,9 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Video Creator</title>
+    <script>
+        async function generateAudio() {
+            const text = document.getElementById("textInput").value;
+            const selectedVoice = document.getElementById("voiceSelect").value; // Get selected voice
+
+            // API call based on selected voice
+            const response = await fetch(`https://api-inference.huggingface.co/models/tts_models/en/${selectedVoice}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer YOUR_HUGGINGFACE_API_KEY',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ inputs: text })
+            });
+            const data = await response.blob();
+            const audioUrl = URL.createObjectURL(data);
+            document.getElementById("audioPlayer").src = audioUrl;
+        }
+
+        async function generateImage() {
+            const text = document.getElementById("textInput").value;
+            const response = await fetch('https://api-inference.huggingface.co/models/sd-conceptual', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer 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',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ inputs: text })
+            });
+            const data = await response.json();
+            const imageUrl = data.generated_image_url;
+            document.getElementById("imageOutput").src = imageUrl;
+        }
+    </script>
 </head>
 <body>
     <h1>Welcome to Your AI Video Creator</h1>
-    <p>This is a free AI-powered tool.</p>
+    <p>Enter text to generate audio and images:</p>
+    
+    <textarea id="textInput" placeholder="Enter your text here..."></textarea><br><br>
+
+    <label for="voiceSelect">Choose a Voice:</label>
+    <select id="voiceSelect">
+        <option value="ljspeech/tacotron2-DDC">Voice 1 (LJSpeech)</option>
+        <option value="vctk">Voice 2 (VCTK - Various)</option>
+        <!-- Add more options for other voices -->
+    </select><br><br>
+
+    <button onclick="generateAudio()">Generate Audio</button>
+    <audio id="audioPlayer" controls></audio><br><br>
+
+    <button onclick="generateImage()">Generate Image</button>
+    <img id="imageOutput" alt="Generated Image" style="max-width: 500px;"/><br><br>
+
 </body>
 </html>
