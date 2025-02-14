@@ -74,6 +74,9 @@
       fetch(url)
         .then(response => response.json())
         .then(data => {
+          // Log the response for debugging
+          console.log('Unsplash API Response:', data);
+
           // Check if 'results' exists and is an array
           if (data && data.results && Array.isArray(data.results)) {
             if (data.results.length > 0) {
@@ -105,7 +108,7 @@
         imageContainer.appendChild(imgElement);
       });
     }
-    
+
     function searchMedia() {
       const keyword = document.getElementById('search-input').value;
       if (keyword.trim() !== "") {
@@ -132,5 +135,4 @@
   <div id="image-container"></div>
 </body>
 </html>
-
 
