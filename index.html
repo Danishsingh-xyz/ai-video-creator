@@ -1,73 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ResponsiveVoice Text-to-Speech</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        textarea, select, button {
-            padding: 10px;
-            margin: 10px;
-            width: 100%;
-        }
-        button {
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-        }
-    </style>
-</head>
-<body>
-
-    <h1>Text-to-Speech Tool with ResponsiveVoice</h1>
-    
-    <!-- Input text area -->
-    <textarea id="input-text" rows="4" placeholder="Enter text to convert to speech..."></textarea>
-    
-    <!-- Voice selection dropdown -->
-    <label for="voice-selector">Select Voice:</label>
-    <select id="voice-selector">
-        <option value="UK English Male">UK English Male</option>
-        <option value="UK English Female">UK English Female</option>
-        <option value="US English Male">US English Male</option>
-        <option value="US English Female">US English Female</option>
-        <option value="Australian Male">Australian Male</option>
-    </select>
-
-    <!-- Button to generate speech -->
-    <button onclick="generateAudio()">Generate Audio</button>
-
-    <h3>Generated Audio:</h3>
-    <audio id="audio-output" controls></audio>
-
-    <!-- ResponsiveVoice Script -->
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
-
-    <script>
-        function generateAudio() {
-            const text = document.getElementById("input-text").value;
-            const voice = document.getElementById("voice-selector").value;
-
-            // Generate speech using ResponsiveVoice API
-            responsiveVoice.speak(text, voice);
-        }
-    </script>
-</body>
-</html>    
-<!DOCTYPE html>
-<html lang="en">
-<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Tool</title>
+  <title>AI Tool - TTS + Media Fetching</title>
   <script>
     // Unsplash Code (Image Fetching)
     const UNSPLASH_API_KEY = 'ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0'; // Replace with your Unsplash API key
 
+    // Function to fetch images and videos from Unsplash
     function fetchMediaFromUnsplash(keyword) {
       const url = `https://api.unsplash.com/search/photos?query=${keyword}&client_id=${UNSPLASH_API_KEY}&per_page=5`;
 
@@ -94,6 +35,7 @@
         });
     }
 
+    // Function to display images from Unsplash
     function displayImages(images) {
       const imageContainer = document.getElementById('image-container');
       imageContainer.innerHTML = '';
@@ -109,30 +51,35 @@
       });
     }
 
-    function searchMedia() {
-      const keyword = document.getElementById('search-input').value;
-      if (keyword.trim() !== "") {
-        fetchMediaFromUnsplash(keyword);
-      } else {
-        alert("Please enter a keyword.");
-      }
+    // Function to perform Text-to-Speech (TTS)
+    function generateAudio(text) {
+      const voice = 'en_us_male'; // Specify the voice you want here (you can change this)
+      const url = `https://api.responsivevoice.org/v1/text:synthesize?text=${encodeURIComponent(text)}&voice=${voice}&key=bEpt2W2Y`; // Replace with your API key
+
+      fetch(url)
+        .then(response => response.blob())
+        .then(audioBlob => {
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const audio = new Audio(audioUrl);
+          audio.play();
+        })
+        .catch(error => {
+          console.error('Error generating audio:', error);
+          alert('An error occurred while generating the audio.');
+        });
     }
 
-  </script>
-</head>
-<body>
-  <h1>AI Tool - Real World Images and TTS</h1>
+    // Function to handle the combined TTS and Media fetching
+    function handlePromptSubmit() {
+      const prompt = document.getElementById('prompt-input').value;
 
-  <!-- TTS Section -->
-  <h2>Text to Speech</h2>
-  <!-- Add your TTS HTML code here -->
+      if (prompt.trim() === "") {
+        alert("Please enter a prompt.");
+        return;
+      }
 
-  <!-- Unsplash Section -->
-  <h2>Search for Images and Videos</h2>
-  <input type="text" id="search-input" placeholder="Enter a keyword (e.g., car, beach, people)">
-  <button onclick="searchMedia()">Search</button>
+      // Generate TTS from the prompt
+      generateAudio(prompt);
 
-  <div id="image-container"></div>
-</body>
-</html>
-
+      // Fetch media (images and videos) based on the prompt
+      fetchMediaFromUnsplash(
