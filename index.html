@@ -44,11 +44,13 @@
             <option value="ErXwobaDi_JbuLE3k8G4">Voice 3</option>
             <!-- Add more voices from Eleven Labs API here -->
         </select>
-        <button onclick="generateAudio()">Generate Audio</button>
+        <button id="generate-btn">Generate Audio</button>
         <div id="audio-player"></div>
     </div>
 
     <script>
+        document.getElementById('generate-btn').addEventListener('click', generateAudio);
+
         async function generateAudio() {
             const text = document.getElementById('text-input').value;
             const voiceChoice = document.getElementById('voice-choice').value;
@@ -83,5 +85,10 @@
                 document.getElementById('audio-player').innerHTML = audioPlayer;
             } catch (error) {
                 console.error("Error generating audio:", error);
-                alert("Failed to generate audio.
+                alert("Failed to generate audio. Please try again.");
+            }
+        }
+    </script>
+</body>
+</html>
 
