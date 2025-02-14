@@ -23,29 +23,17 @@
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 20px;
         }
         .image-container img {
-            width: 18%;
+            width: 30%;
             height: auto;
-            border-radius: 5px;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
     <h1>AI Video Creator</h1>
-    
-    <textarea id="input-text" rows="4" placeholder="Enter text to generate speech and images..."></textarea>
-    
-    <label for="voice-selector">Select Voice:</label>
-    <select id="voice-selector">
-        <option value="UK English Male">UK English Male</option>
-        <option value="UK English Female">UK English Female</option>
-        <option value="US English Male">US English Male</option>
-        <option value="US English Female">US English Female</option>
-        <option value="Australian Male">Australian Male</option>
-    </select>
-    
+    <textarea id="input-text" rows="4" placeholder="Enter text to generate images and speech..."></textarea>
     <button onclick="generateContent()">Generate</button>
     
     <h3>Generated Audio:</h3>
@@ -53,48 +41,65 @@
     
     <h3>Generated Images:</h3>
     <div class="image-container" id="image-container"></div>
-    
+
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
-    
     <script>
-        function generateContent() {
-            const text = document.getElementById("input-text").value;
-            const voice = document.getElementById("voice-selector").value;
-            
-            // Generate speech using ResponsiveVoice API
-            responsiveVoice.speak(text, voice);
-            
-            // Fetch images from Google Custom Search
-            fetchImages(text);
-        }
+        const GOOGLE_API_KEY = "AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog";
+        const GOOGLE_CX_ID = "9128389fe7f334212";
+        const HUGGINGFACE_API_KEY = "ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0";
 
         async function fetchImages(query) {
-            const apiKey = "AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog";
-            const cx = "9128389fe7f334212";
-            const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&cx=${cx}&key=${apiKey}&searchType=image&num=5`;
-            
             try {
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                const imageContainer = document.getElementById("image-container");
-                imageContainer.innerHTML = "";
-                
-                if (data.items) {
-                    data.items.forEach(item => {
-                        const img = document.createElement("img");
-                        img.src = item.link;
-                        imageContainer.appendChild(img);
-                    });
-                } else {
-                    imageContainer.innerHTML = "<p>No images found.</p>";
-                }
+                let url = `https://www.googleapis.com/customsearch/v1?q=${query}&cx=${GOOGLE_CX_ID}&searchType=image&key=${GOOGLE_API_KEY}`;
+                let response = await fetch(url);
+                let data = await response.json();
+                return data.items ? data.items.slice(0, 3).map(item => item.link) : [];
             } catch (error) {
                 console.error("Error fetching images:", error);
-                document.getElementById("image-container").innerHTML = "<p>Failed to fetch images.</p>";
+                return [];
             }
+        }
+
+        async function generateAIImage(prompt) {
+            try {
+                let response = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${HUGGINGFACE_API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ inputs: prompt })
+                });
+                let blob = await response.blob();
+                return URL.createObjectURL(blob);
+            } catch (error) {
+                console.error("Error generating AI image:", error);
+                return null;
+            }
+        }
+
+        function generateAudio() {
+            const text = document.getElementById("input-text").value;
+            responsiveVoice.speak(text, "UK English Male");
+        }
+
+        async function generateContent() {
+            const prompt = document.getElementById("input-text").value;
+            document.getElementById("image-container").innerHTML = "Loading images...";
+            document.getElementById("audio-output").innerHTML = "Generating audio...";
+
+            generateAudio();
+            
+            let images = await fetchImages(prompt);
+            if (images.length < 3) {
+                let aiImage = await generateAIImage(prompt);
+                if (aiImage) images.push(aiImage);
+            }
+            
+            document.getElementById("image-container").innerHTML = images.map(img => `<img src="${img}" alt="Generated image">`).join(" ");
         }
     </script>
 </body>
 </html>
+
 
