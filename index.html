@@ -10,12 +10,12 @@
 
     <!-- Input text and select voice -->
     <label for="text">Enter Text:</label>
-    <input type="text" id="text" placeholder="Type something...">
+    <input type="text" id="text" placeholder="Type something..." />
     
     <label for="voice">Select Voice:</label>
     <select id="voice">
         <option value="facebook/mms-tts-eng">Voice 1 (MMS TTS Model)</option>
-        <!-- You can add more voices here if needed -->
+        <!-- Add more voices if needed -->
     </select>
 
     <button onclick="generateAudio()">Generate</button>
@@ -27,30 +27,32 @@
         async function generateAudio() {
             const text = document.getElementById("text").value;
             const voice = document.getElementById("voice").value;
-            const API_KEY = "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";  // Insert your Hugging Face API Key here
+            const API_KEY = "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";  // Replace with your actual Hugging Face API Key
 
-            // Hugging Face API endpoint for selected model
             const API_URL = `https://api-inference.huggingface.co/models/${voice}`;
             
-            // Send POST request to the model's API
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ inputs: text })
-            });
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ inputs: text })
+                });
 
-            if (response.ok) {
-                const blob = await response.blob();
-                // Log the successful response and play the audio
-                console.log("Audio generated successfully!");
-                document.getElementById("audio").src = URL.createObjectURL(blob);
-            } else {
-                // Log the error response and show an alert
-                console.error("Error: ", response.status, response.statusText);
-                alert("Failed to generate audio! Please check the console for details.");
+                if (response.ok) {
+                    const blob = await response.blob();
+                    document.getElementById("audio").src = URL.createObjectURL(blob);
+                    console.log("Audio generated successfully!");
+                } else {
+                    const errorData = await response.json();
+                    console.error("Error with API request:", errorData);
+                    alert("Failed to generate audio. Check console for error details.");
+                }
+            } catch (error) {
+                console.error("Error with API request:", error);
+                alert("Something went wrong. Check the console for more info.");
             }
         }
     </script>
