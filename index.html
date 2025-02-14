@@ -82,7 +82,18 @@
         // Function to generate audio (TTS)
         function generateAudio(text, voice) {
             // Generate speech using ResponsiveVoice API
-            responsiveVoice.speak(text, voice);
+            if (text) {
+                responsiveVoice.speak(text, voice, {
+                    onend: function() {
+                        console.log("Audio finished");
+                    },
+                    onstart: function() {
+                        console.log("Audio started");
+                    }
+                });
+            } else {
+                alert("Please enter some text to convert to speech.");
+            }
         }
 
         // Function to fetch images from Unsplash
@@ -108,4 +119,3 @@
 
 </body>
 </html>
-
