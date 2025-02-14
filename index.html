@@ -44,7 +44,7 @@
         return;
       }
 
-      fetch("https://api.elevenlabs.io/v1/text-to-speech", {
+      fetch("https://cors-anywhere.herokuapp.com/https://api.elevenlabs.io/v1/text-to-speech", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${elevenLabsAPIKey}`,
