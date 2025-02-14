@@ -6,14 +6,15 @@
   <title>Text to Speech</title>
   <script>
     const api_url = "https://api-inference.huggingface.co/models/coqui/XTTS-v2"; // Coqui XTTS-v2 model API URL
-    const api_key = "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"; // Replace with your Hugging Face API key
+    const api_key = "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"; // Replace with your Hugging Face API key
+    const cors_proxy = "https://cors-anywhere.herokuapp.com/"; // CORS Proxy
 
     async function generateAudio() {
       const textInput = document.getElementById('text-input').value;
       const voiceSelection = document.getElementById('voice-select').value;
       
-      // Make the request to the Hugging Face API
-      const response = await fetch(api_url, {
+      // Make the request to the Hugging Face API with a CORS proxy
+      const response = await fetch(cors_proxy + api_url, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${api_key}`,
@@ -59,4 +60,9 @@
     </select>
   </div>
   <div>
-    <button id="gener
+    <button id="generate-button">Generate Audio</button>
+  </div>
+  <div id="audio-output"></div>
+</body>
+</html>
+
