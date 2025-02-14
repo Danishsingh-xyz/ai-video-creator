@@ -71,8 +71,8 @@
 
             // Step 2: Extract keywords and fetch images from Unsplash
             try {
-                const query = extractKeywords(text);
-                const images = await fetchImages(query);
+                const keywords = extractKeywords(text);
+                const images = await fetchImages(keywords);
                 displayImages(images);
             } catch (error) {
                 console.error('Error fetching images:', error);
@@ -97,35 +97,39 @@
             }
         }
 
-        // Function to extract relevant keywords from the input text (improved)
+        // Function to extract relevant keywords from the input text
         function extractKeywords(text) {
             const stopwords = ['a', 'an', 'the', 'and', 'is', 'in', 'on', 'at', 'for', 'of', 'with'];  // Common stopwords
             const words = text.split(' ').filter(word => !stopwords.includes(word.toLowerCase()));
-            return words.join(',');
+            return words;
         }
 
         // Function to fetch images from Unsplash based on keywords
-        async function fetchImages(query) {
-            console.log('Fetching images for query:', query); // Debugging log
-            const url = `https://api.unsplash.com/photos/random?query=${query}&client_id=${UNSPLASH_API_KEY}&count=5`;  // Replace 5 with the number of images you want
-            console.log('Unsplash API URL:', url); // Debugging log
+        async function fetchImages(keywords) {
+            let images = [];
 
-            const response = await fetch(url);
+            for (const keyword of keywords) {
+                const query = encodeURIComponent(keyword);
+                const url = `https://api.unsplash.com/photos/random?query=${query}&client_id=${UNSPLASH_API_KEY}&count=3`;  // Fetch 3 images for each keyword
 
-            // Check if response is successful
-            if (!response.ok) {
-                throw new Error('Failed to fetch images');
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch images');
+                }
+
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    images = images.concat(data.map(item => item.urls.small));  // Add fetched images to the list
+                }
             }
 
-            const data = await response.json();
-
-            console.log('Fetched data:', data); // Debugging log
-
-            if (data && data.length > 0) {
-                return data.map(item => item.urls.small);  // Get the URLs of small images
-            } else {
-                return ['https://via.placeholder.com/300'];  // Fallback image if no images found
+            if (images.length === 0) {
+                images = ['https://via.placeholder.com/300'];  // Fallback image if no relevant images are found
             }
+
+            return images;
         }
 
         // Function to display the fetched images
