@@ -7,7 +7,7 @@
   <script>
     const api_url = "https://api-inference.huggingface.co/models/coqui/XTTS-v2"; // Coqui XTTS-v2 model API URL
     const api_key = "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"; // Replace with your Hugging Face API key
-    const cors_proxy = "https://cors-anywhere.herokuapp.com/"; // CORS Proxy
+    const cors_proxy = "https://cors-anywhere.herokuapp.com/"; // Replace with your own proxy URL if needed
 
     async function generateAudio() {
       const textInput = document.getElementById('text-input').value;
@@ -18,25 +18,67 @@
         return;
       }
 
-      // Make the request to the Hugging Face API with a CORS proxy
-      const response = await fetch(cors_proxy + api_url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${api_key}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          inputs: textInput,
-          voice: voiceSelection // Use the selected voice
-        })
-      });
+      try {
+        // Make the request to the Hugging Face API with a CORS proxy
+        const response = await fetch(cors_proxy + api_url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${api_key}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            inputs: textInput,
+            voice: voiceSelection // Use the selected voice
+          })
+        });
 
-      if (response.ok) {
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
+        if (response.ok) {
+          const audioBlob = await response.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
 
-        // Create an audio player and display it
-        const audioElement = new Audio(audioUrl);
-        audioElement.controls = true;
-        document.getElementById('audio-output').innerHTML = '';
-        document.getElementById('audio-
+          // Create an audio player and display it
+          const audioElement = new Audio(audioUrl);
+          audioElement.controls = true;
+          document.getElementById('audio-output').innerHTML = '';
+          document.getElementById('audio-output').appendChild(audioElement);
+          audioElement.play();
+        } else {
+          console.error('Error generating audio:', response.statusText);
+          alert('Error generating audio: ' + response.statusText);
+        }
+      } catch (error) {
+        console.error('Error generating audio:', error);
+        alert('Error generating audio: ' + error);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Ensure the button works when clicked
+      document.getElementById('generate-button').addEventListener('click', generateAudio);
+    });
+  </script>
+</head>
+<body>
+  <h2>Text to Speech Generator</h2>
+  
+  <div>
+    <label for="text-input">Enter Text:</label>
+    <input type="text" id="text-input" placeholder="Enter text to generate speech" />
+  </div>
+
+  <div>
+    <label for="voice-select">Choose a Voice:</label>
+    <select id="voice-select">
+      <option value="en_us_1">English (US) - Voice 1</option>
+      <option value="en_us_2">English (US) - Voice 2</option>
+      <!-- Add more options if available from Coqui -->
+    </select>
+  </div>
+  
+  <div>
+    <button id="generate-button">Generate Audio</button>
+  </div>
+
+  <div id="audio-output"></div>
+</body>
+</html>
