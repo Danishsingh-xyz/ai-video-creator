@@ -27,30 +27,37 @@
         async function generateAudio() {
             const text = document.getElementById("text").value;
             const voice = document.getElementById("voice").value;
-            const API_KEY = "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";  // Insert your Hugging Face API Key here
+            const API_KEY = "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";  // Insert your actual Hugging Face API Key here
+
+            console.log("API Key:", API_KEY); // Debug log for API Key
+            console.log("Selected Voice:", voice); // Debug log for selected voice
+            console.log("Text entered:", text); // Debug log for entered text
 
             // Hugging Face API endpoint
             const API_URL = `https://api-inference.huggingface.co/models/${voice}`;
             
             // Send a POST request to the model's API
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ inputs: text })
-            });
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ inputs: text })
+                });
 
-            if (response.ok) {
-                const blob = await response.blob();
-                // Log the response to see if the file is returned correctly
-                console.log("Audio generated successfully!");
-                document.getElementById("audio").src = URL.createObjectURL(blob);
-            } else {
-                // Log the error response to the console
-                console.error("Error: ", response.status, response.statusText);
-                alert("Failed to generate audio! Please check the console for details.");
+                if (response.ok) {
+                    const blob = await response.blob();
+                    document.getElementById("audio").src = URL.createObjectURL(blob);
+                    console.log("Audio generated successfully!"); // Success log
+                } else {
+                    console.error("Error with API request:", response.status); // Error log
+                    alert("Error with API request. Status: " + response.status);
+                }
+            } catch (error) {
+                console.error("Fetch error:", error); // Catch network errors
+                alert("An error occurred: " + error);
             }
         }
     </script>
