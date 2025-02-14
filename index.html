@@ -97,11 +97,11 @@
             }
         }
 
-        // Function to extract relevant keywords from the input text
+        // Function to extract relevant keywords from the input text (improved)
         function extractKeywords(text) {
-            // You can enhance this function to extract more specific keywords or use a more advanced NLP library for better results
-            const words = text.split(" ");
-            return words.join(",");  // Convert array into a comma-separated list of words for the Unsplash query
+            const stopwords = ['a', 'an', 'the', 'and', 'is', 'in', 'on', 'at', 'for', 'of', 'with'];  // Common stopwords
+            const words = text.split(' ').filter(word => !stopwords.includes(word.toLowerCase()));
+            return words.join(',');
         }
 
         // Function to fetch images from Unsplash based on keywords
@@ -124,7 +124,7 @@
             if (data && data.length > 0) {
                 return data.map(item => item.urls.small);  // Get the URLs of small images
             } else {
-                throw new Error('No images found');
+                return ['https://via.placeholder.com/300'];  // Fallback image if no images found
             }
         }
 
@@ -143,4 +143,5 @@
 
 </body>
 </html>
+
 
