@@ -3,37 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text-to-Speech and Image Search Tool</title>
+    <title>AI Video Creator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            text-align: center;
         }
         textarea, select, button {
             padding: 10px;
             margin: 10px;
-            width: 100%;
+            width: 80%;
         }
         button {
             cursor: pointer;
             background-color: #4CAF50;
             color: white;
+            border: none;
+            padding: 10px 20px;
         }
-        .output-container {
+        .image-container {
             margin-top: 20px;
         }
-        #image-output img {
-            max-width: 100%;
+        img {
+            width: 300px;
             height: auto;
+            margin: 10px;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
-    <h1>Text-to-Speech and Image Search</h1>
+    <h1>AI Video Creator</h1>
     
-    <!-- Input text area -->
-    <textarea id="input-text" rows="4" placeholder="Enter text to convert to speech and search for images..."></textarea>
+    <!-- Single input for both TTS & Image Generation -->
+    <textarea id="input-text" rows="4" placeholder="Enter text to generate voice & images..."></textarea>
     
     <!-- Voice selection dropdown -->
     <label for="voice-selector">Select Voice:</label>
@@ -45,72 +50,67 @@
         <option value="Australian Male">Australian Male</option>
     </select>
 
-    <!-- Button to generate speech and fetch images -->
-    <button onclick="generateContent()">Generate Audio and Fetch Images</button>
+    <button onclick="generateContent()">Generate</button>
 
-    <div class="output-container">
-        <!-- Generated Audio -->
-        <h3>Generated Audio:</h3>
-        <audio id="audio-output" controls></audio>
-        
-        <!-- Image Output -->
-        <h3>Fetched Images:</h3>
-        <div id="image-output"></div>
-    </div>
+    <h3>Generated Audio:</h3>
+    <audio id="audio-output" controls></audio>
+
+    <h3>Generated Images:</h3>
+    <div class="image-container" id="image-container"></div>
 
     <!-- ResponsiveVoice Script -->
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
-        // Google Custom Search API key and CX ID
-        const apiKey = 'AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog';
-        const cxId = '9128389fe7f334212';
-
-        // Function to generate audio and fetch images
-        function generateContent() {
+        async function generateContent() {
             const text = document.getElementById("input-text").value;
             const voice = document.getElementById("voice-selector").value;
 
-            // Step 1: Generate Speech using ResponsiveVoice
-            generateAudio(text, voice);
+            if (!text) {
+                alert("Please enter text before generating!");
+                return;
+            }
 
-            // Step 2: Fetch Images using Google Custom Search API
+            // Generate speech
+            responsiveVoice.speak(text, voice);
+
+            // Generate images
             fetchImages(text);
         }
 
-        // Function to generate audio using ResponsiveVoice
-        function generateAudio(text, voice) {
-            responsiveVoice.speak(text, voice, {
-                onstart: function () {
-                    console.log("Audio started...");
-                },
-                onend: function () {
-                    console.log("Audio ended...");
-                }
-            });
-        }
+        async function fetchImages(query) {
+            const apiKey = "AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog"; // Replace with your Google API key
+            const cx = "9128389fe7f334212"; // Replace with your Programmable Search Engine CX ID
+            const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&cx=${cx}&searchType=image&key=${apiKey}`;
 
-        // Function to fetch images using Google Custom Search API
-        function fetchImages(query) {
-            const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&cx=${cxId}&key=${apiKey}&searchType=image`;
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.items && data.items.length > 0) {
-                        // Display the first image result
-                        const imgContainer = document.getElementById("image-output");
-                        imgContainer.innerHTML = `<img src="${data.items[0].link}" alt="Image">`;
-                    } else {
-                        document.getElementById("image-output").innerHTML = "<p>No images found.</p>";
-                    }
-                })
-                .catch(error => {
-                    console.error("Error fetching images:", error);
-                    document.getElementById("image-output").innerHTML = "<p>Error fetching images.</p>";
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                console.log("API Response:", data); // Debugging: check full response
+
+                if (!data.items || data.items.length === 0) {
+                    throw new Error("No images found");
+                }
+
+                // Clear previous images
+                const imageContainer = document.getElementById("image-container");
+                imageContainer.innerHTML = "";
+
+                // Display images
+                data.items.slice(0, 3).forEach(item => {
+                    const img = document.createElement("img");
+                    img.src = item.link;
+                    imageContainer.appendChild(img);
                 });
+
+            } catch (error) {
+                console.error("Error fetching images:", error);
+                alert("Failed to fetch images. Please try again.");
+            }
         }
     </script>
+
 </body>
 </html>
 
