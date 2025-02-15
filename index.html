@@ -23,6 +23,7 @@
             margin-top: 20px;
         }
     </style>
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=YOUR_RESPONSIVEVOICE_API_KEY"></script>
 </head>
 <body>
     <h1>AI Video Creator</h1>
@@ -49,8 +50,6 @@
         <audio id="audio-output" controls></audio>
     </div>
 
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
-
     <script>
         async function generateVideo() {
             const scriptText = document.getElementById("video-text").value;
@@ -61,45 +60,65 @@
             const scenes = scriptText.split('.');
             let sceneIndex = 0;
 
-            function playScene() {
+            async function fetchVideo(scene) {
+                try {
+                    let response = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(scene)}`, {
+                        headers: { Authorization: "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50" }
+                    });
+                    let data = await response.json();
+                    return data.videos.length > 0 ? data.videos[0].video_files[0].link : null;
+                } catch (error) {
+                    console.error("Error fetching video:", error);
+                    return null;
+                }
+            }
+
+            async function fetchGeneratedImage(scene) {
+                try {
+                    let response = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2", {
+                        method: "POST",
+                        headers: {
+                            Authorization: "Bearer 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",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ inputs: scene })
+                    });
+                    let result = await response.json();
+                    return result.error ? null : result;
+                } catch (error) {
+                    console.error("Error generating image:", error);
+                    return null;
+                }
+            }
+
+            async function playScene() {
                 if (sceneIndex >= scenes.length) {
                     console.log("All scenes played");
                     return;
                 }
                 let currentScene = scenes[sceneIndex].trim();
                 if (currentScene) {
-                    fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(currentScene)}`, {
-                        headers: { Authorization: "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50" }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.videos.length > 0) {
-                            let videoUrl = data.videos[0].video_files[0].link;
-                            videoOutput.src = videoUrl;
-                            videoOutput.play();
-                            
-                            responsiveVoice.speak(currentScene, voice, { onend: () => {
-                                sceneIndex++;
-                                playScene();
-                            }});
+                    let videoUrl = await fetchVideo(currentScene);
+                    if (!videoUrl) {
+                        console.log("No real-world video found, generating AI image...");
+                        let generatedImage = await fetchGeneratedImage(currentScene);
+                        if (generatedImage) {
+                            videoOutput.src = generatedImage;
                         }
-                    })
-                    .catch(error => console.error("Error fetching video:", error));
+                    } else {
+                        videoOutput.src = videoUrl;
+                    }
+                    videoOutput.play();
+                    
+                    if (typeof responsiveVoice !== "undefined") {
+                        responsiveVoice.speak(currentScene, voice, { onend: () => {
+                            sceneIndex++;
+                            playScene();
+                        }});
+                    } else {
+                        console.error("responsiveVoice is not defined");
+                    }
                 }
-            }
-            
-            // Generate AI-based video if no real-world video found
-            async function generateAIImage(query) {
-                const hfResponse = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": "Bearer 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",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ inputs: query })
-                });
-                const aiImageBlob = await hfResponse.blob();
-                return URL.createObjectURL(aiImageBlob);
             }
             
             playScene();
@@ -107,4 +126,3 @@
     </script>
 </body>
 </html>
-
