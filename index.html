@@ -4,146 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Video Creator</title>
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=YOUR_RESPONSIVE_VOICE_KEY"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        textarea, select, button {
-            padding: 10px;
-            margin: 10px;
-            width: 100%;
-        }
-        button {
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-        }
-        .image-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .image-container img {
-            width: 30%;
-            height: auto;
-            border-radius: 10px;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        textarea, select, button { padding: 10px; margin: 10px; width: 100%; }
+        button { cursor: pointer; background-color: #4CAF50; color: white; }
+        #video-container { margin-top: 20px; }
     </style>
 </head>
-<body>  
-    <h3>Generated Videos:</h3>
-<div id="video-container"></div>
- <h1>AI Video Creator</h1>
-    <textarea id="input-text" rows="4" placeholder="Enter text to generate images and speech..."></textarea>
-    <button onclick="generateContent()">Generate</button>
+<body>
+    <h1>AI Video Creator</h1>
+    <textarea id="script-input" rows="4" placeholder="Enter script..."></textarea>
+    <button onclick="generateContent()">Generate Video</button>
+    <h3>Generated Video:</h3>
+    <div id="video-container"></div>
     
-    <h3>Generated Audio:</h3>
-    <audio id="audio-output" controls></audio>
-    
-    <h3>Generated Images:</h3>
-    <div class="image-container" id="image-container"></div>
-
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
     <script>
         const GOOGLE_API_KEY = "AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog";
         const GOOGLE_CX_ID = "9128389fe7f334212";
-        const HUGGINGFACE_API_KEY = "ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0";
+        const DALLE_API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2";
+        const HUGGING_FACE_API_KEY = "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";
 
-        async function fetchImages(query) {
+        async function fetchRealWorldImages(query) {
+            const url = `https://www.googleapis.com/customsearch/v1?q=${query}&cx=${GOOGLE_CX_ID}&searchType=image&key=${GOOGLE_API_KEY}`;
             try {
-                let url = `https://www.googleapis.com/customsearch/v1?q=${query}&cx=${GOOGLE_CX_ID}&searchType=image&key=${GOOGLE_API_KEY}`;
-                let response = await fetch(url);
-                let data = await response.json();
-                return data.items ? data.items.slice(0, 3).map(item => item.link) : [];
+                const response = await fetch(url);
+                const data = await response.json();
+                return data.items ? data.items.map(item => item.link) : [];
             } catch (error) {
-                console.error("Error fetching images:", error);
+                console.error("Error fetching real-world images:", error);
                 return [];
             }
         }
 
-        async function generateAIImage(prompt) {
+        async function fetchAIImage(prompt) {
             try {
-                let response = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2", {
+                const response = await fetch(DALLE_API_URL, {
                     method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${HUGGINGFACE_API_KEY}`,
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Authorization": `Bearer ${HUGGING_FACE_API_KEY}` },
                     body: JSON.stringify({ inputs: prompt })
                 });
-                let blob = await response.blob();
-                return URL.createObjectURL(blob);
+                const result = await response.json();
+                return result.generated_image ? result.generated_image : null;
             } catch (error) {
                 console.error("Error generating AI image:", error);
                 return null;
             }
         }
 
-        function generateAudio() {
-            const text = document.getElementById("input-text").value;
-            responsiveVoice.speak(text, "UK English Male");
+        function generateAudio(script) {
+            responsiveVoice.speak(script, "UK English Male");
         }
 
         async function generateContent() {
-            const prompt = document.getElementById("input-text").value;
-            document.getElementById("image-container").innerHTML = "Loading images...";
-            document.getElementById("audio-output").innerHTML = "Generating audio...";
-
-            generateAudio();
-            
-            let images = await fetchImages(prompt);
-            if (images.length < 3) {
-                let aiImage = await generateAIImage(prompt);
-                if (aiImage) images.push(aiImage);
+            const script = document.getElementById("script-input").value;
+            if (!script) {
+                alert("Please enter a script.");
+                return;
             }
+            generateAudio(script);
             
-            document.getElementById("image-container").innerHTML = images.map(img => `<img src="${img}" alt="Generated image">`).join(" ");
+            const keywords = script.split(" ").slice(0, 5).join(" ");
+            const realImages = await fetchRealWorldImages(keywords);
+            const aiImage = await fetchAIImage(script);
+            
+            let mediaUrls = [...realImages];
+            if (aiImage) mediaUrls.push(aiImage);
+            
+            displayMedia(mediaUrls);
+        }
+
+        function displayMedia(mediaUrls) {
+            const container = document.getElementById("video-container");
+            container.innerHTML = "";
+            mediaUrls.slice(0, 5).forEach(url => {
+                let img = document.createElement("img");
+                img.src = url;
+                img.style.width = "100%";
+                img.style.marginTop = "10px";
+                container.appendChild(img);
+            });
         }
     </script>
 </body>
 </html>
-<script>
-const PEXELS_API_KEY = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50"; // Replace with your actual API key
-
-async function fetchVideos(query) {
-    const url = `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=3`; // Fetch 3 videos
-    const response = await fetch(url, {
-        headers: { Authorization: PEXELS_API_KEY }
-    });
-
-    if (!response.ok) {
-        console.error("Error fetching videos:", response.statusText);
-        return [];
-    }
-
-    const data = await response.json();
-    return data.videos.map(video => video.video_files[0].link); // Extract video URLs
-}
-
-async function generateContent() {
-    const scriptText = document.getElementById("input-text").value;
-
-    // Fetch images (already implemented)
-    fetchImages(scriptText);
-
-    // Fetch videos from Pexels
-    const videoUrls = await fetchVideos(scriptText);
-
-    // Display videos
-    const videoContainer = document.getElementById("video-container");
-    videoContainer.innerHTML = "";
-    videoUrls.forEach(url => {
-        const videoElement = document.createElement("video");
-        videoElement.src = url;
-        videoElement.controls = true;
-        videoElement.width = 300;
-        videoContainer.appendChild(videoElement);
-    });
-
-    // Generate TTS (already implemented)
-    generateAudio();
-}
-</script>
 
 
