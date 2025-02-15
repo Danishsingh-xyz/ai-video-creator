@@ -31,8 +31,10 @@
         }
     </style>
 </head>
-<body>
-    <h1>AI Video Creator</h1>
+<body>  
+    <h3>Generated Videos:</h3>
+<div id="video-container"></div>
+ <h1>AI Video Creator</h1>
     <textarea id="input-text" rows="4" placeholder="Enter text to generate images and speech..."></textarea>
     <button onclick="generateContent()">Generate</button>
     
@@ -101,5 +103,47 @@
     </script>
 </body>
 </html>
+<script>
+const PEXELS_API_KEY = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50"; // Replace with your actual API key
+
+async function fetchVideos(query) {
+    const url = `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=3`; // Fetch 3 videos
+    const response = await fetch(url, {
+        headers: { Authorization: PEXELS_API_KEY }
+    });
+
+    if (!response.ok) {
+        console.error("Error fetching videos:", response.statusText);
+        return [];
+    }
+
+    const data = await response.json();
+    return data.videos.map(video => video.video_files[0].link); // Extract video URLs
+}
+
+async function generateContent() {
+    const scriptText = document.getElementById("input-text").value;
+
+    // Fetch images (already implemented)
+    fetchImages(scriptText);
+
+    // Fetch videos from Pexels
+    const videoUrls = await fetchVideos(scriptText);
+
+    // Display videos
+    const videoContainer = document.getElementById("video-container");
+    videoContainer.innerHTML = "";
+    videoUrls.forEach(url => {
+        const videoElement = document.createElement("video");
+        videoElement.src = url;
+        videoElement.controls = true;
+        videoElement.width = 300;
+        videoContainer.appendChild(videoElement);
+    });
+
+    // Generate TTS (already implemented)
+    generateAudio();
+}
+</script>
 
 
