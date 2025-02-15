@@ -80,7 +80,7 @@
                         const aiVideoResponse = await fetch("https://api-inference.huggingface.co/models/cerspense/zeroScope_v2_576w", {
                             method: "POST",
                             headers: {
-                                "Authorization": "Bearerhf_OuRYXjOZqKgcfSJPkPjORLLsploDVfJspw",
+                                "Authorization": "Bearer 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",
                                 "Content-Type": "application/json"
                             },
                             body: JSON.stringify({ inputs: trimmedScene })
@@ -98,10 +98,10 @@
 
             // Merge the videos into one (using a Hugging Face video merging model)
             try {
-                const mergeResponse = await fetch("https://api-inference.huggingface.co/models/runwayml/stable-video-diffusion", {
-                    method: "POST",
+               const mergeResponse = await fetch("https://api-inference.huggingface.co/models/mys/multimodal-ffmpeg", {
+                   method: "POST",
                     headers: {
-                        "Authorization": "Bearer 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",
+                        "Authorization": "Bearer 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",
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({ video_urls: videoUrls })
