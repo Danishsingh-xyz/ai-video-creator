@@ -27,18 +27,12 @@
 <body>
     <h1>AI Video Creator</h1>
     
-    <h2>Text to Image</h2>
-    <label>Enter Text for Images:</label>
-    <textarea id="image-text" rows="4" placeholder="Enter text for AI and real-world images..."></textarea>
+    <label>Enter Text for Image Generation:</label>
+    <textarea id="image-text" rows="4" placeholder="Enter text for images..."></textarea>
     <button onclick="generateImages()">Generate Images</button>
-    <div class="output-section">
-        <h3>Generated Images:</h3>
-        <div id="image-results"></div>
-    </div>
-
-    <h2>Text to Video</h2>
-    <label>Enter Script for Video:</label>
-    <textarea id="video-text" rows="4" placeholder="Enter script for AI and real-world video..."></textarea>
+    
+    <label>Enter Script for Video Generation:</label>
+    <textarea id="video-text" rows="4" placeholder="Enter script for video..."></textarea>
     
     <label>Select Voice:</label>
     <select id="voice-selector">
@@ -52,8 +46,12 @@
     <button onclick="generateVideo()">Generate Video</button>
     
     <div class="output-section">
+        <h3>Generated Images:</h3>
+        <div id="image-results"></div>
+        
         <h3>Generated Video:</h3>
         <video id="video-output" controls></video>
+        
         <h3>Generated Audio:</h3>
         <audio id="audio-output" controls></audio>
     </div>
@@ -62,12 +60,11 @@
 
     <script>
         async function fetchImages(query) {
-            const huggingFaceApiKey = "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";
             const googleApiKey = "AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog";
             const googleCx = "9128389fe7f334212";
             const unsplashApiKey = "ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0";
             const pexelsApiKey = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
-
+            
             let images = [];
             
             try {
@@ -100,11 +97,11 @@
         }
 
         async function generateImages() {
-            const query = document.getElementById("image-text").value;
+            const imageText = document.getElementById("image-text").value;
             const imageResultsDiv = document.getElementById("image-results");
             
             imageResultsDiv.innerHTML = "<p>Loading images...</p>";
-            let images = await fetchImages(query);
+            let images = await fetchImages(imageText);
             imageResultsDiv.innerHTML = images.map(url => `<img src="${url}" width="200">`).join(" ");
         }
 
@@ -115,16 +112,22 @@
             const audioOutput = document.getElementById("audio-output");
             
             let images = await fetchImages(scriptText);
-            videoOutput.innerHTML = images.map(url => `<source src="${url}" type="video/mp4">`).join(" ");
+            let imageSources = images.map(url => `<source src="${url}" type="video/mp4">`).join(" ");
             
-            let audio = new Audio();
-            audio.src = responsiveVoice.speak(scriptText, voice, { onend: function() {
-                console.log("Speech finished");
-            }});
-            
-            audioOutput.replaceWith(audio);
+            if (images.length > 0) {
+                videoOutput.innerHTML = imageSources;
+                videoOutput.load();
+                videoOutput.play();
+                
+                videoOutput.onplay = function() {
+                    responsiveVoice.speak(scriptText, voice);
+                };
+            } else {
+                console.error("No images found for video generation");
+            }
         }
     </script>
 </body>
 </html>
+
 
