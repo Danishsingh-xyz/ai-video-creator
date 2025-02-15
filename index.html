@@ -3,41 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Video Creator</title>
+    <title>AI Video & Image Generator</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        textarea, select, input, button { padding: 10px; margin: 10px; width: 100%; }
-        button { cursor: pointer; background-color: #4CAF50; color: white; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea, select, button {
+            padding: 10px;
+            margin: 10px;
+            width: 100%;
+        }
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+        }
     </style>
 </head>
 <body>
-    <h1>AI Video Creator</h1>
-
-    <!-- API Key Inputs -->
-    <label>Hugging Face API Key:</label>
-    <input type="text" id="huggingface-api" placeholder="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">
+    <h1>AI Video & Image Generator</h1>
     
-    <label>Google API Key:</label>
-    <input type="text" id="google-api" placeholder="AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog">
-    
-    <label>Google CX ID:</label>
-    <input type="text" id="google-cx" placeholder="9128389fe7f334212">
-    
-    <label>Unsplash API Key:</label>
-    <input type="text" id="unsplash-api" placeholder="ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0">
-    
-    <label>Pexels API Key:</label>
-    <input type="text" id="pexels-api" placeholder="n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50">
-
-    <!-- Text-to-Image Section -->
-    <h2>Generate Images</h2>
-    <textarea id="image-prompt" rows="2" placeholder="Enter text to generate images..."></textarea>
+    <!-- Text to Image Section -->
+    <h2>Text to Image</h2>
+    <textarea id="image-text" rows="3" placeholder="Enter text to generate images..."></textarea>
     <button onclick="generateImages()">Generate Images</button>
     <div id="image-results"></div>
 
-    <!-- Script-to-Video Section -->
-    <h2>Generate Video</h2>
-    <textarea id="script-text" rows="4" placeholder="Enter script for video..."></textarea>
+    <!-- Text to Video Section -->
+    <h2>Text to Video</h2>
+    <textarea id="video-text" rows="3" placeholder="Enter script for video..."></textarea>
     <label for="voice-selector">Select Voice:</label>
     <select id="voice-selector">
         <option value="UK English Male">UK English Male</option>
@@ -48,57 +43,38 @@
     </select>
     <button onclick="generateVideo()">Generate Video</button>
     <div id="video-results"></div>
+
+    <!-- ResponsiveVoice Script -->
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
     
     <script>
+        const HF_API_KEY = "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";
+        const GOOGLE_API_KEY = "AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog";
+        const GOOGLE_CX = "9128389fe7f334212";
+        const UNSPLASH_API_KEY = "ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0";
+        const PEXELS_API_KEY = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
+
         function generateImages() {
-            const apiKey = document.getElementById("unsplash-api").value;
-            const query = document.getElementById("image-prompt").value;
-            fetch(`https://api.unsplash.com/search/photos?query=${query}&client_id=${apiKey}`)
+            const text = document.getElementById("image-text").value;
+            fetch(`https://www.googleapis.com/customsearch/v1?q=${text}&cx=${GOOGLE_CX}&key=${GOOGLE_API_KEY}&searchType=image`)
                 .then(response => response.json())
                 .then(data => {
-                    const imagesDiv = document.getElementById("image-results");
-                    imagesDiv.innerHTML = "";
-                    data.results.slice(0, 3).forEach(img => {
-                        imagesDiv.innerHTML += `<img src="${img.urls.small}" width="200">`;
+                    let imagesHtml = "";
+                    data.items.slice(0, 3).forEach(item => {
+                        imagesHtml += `<img src="${item.link}" width="200">`;
                     });
+                    document.getElementById("image-results").innerHTML = imagesHtml;
                 })
                 .catch(error => console.error("Error fetching images:", error));
         }
-        
+
         function generateVideo() {
-            const script = document.getElementById("script-text").value;
+            const text = document.getElementById("video-text").value;
             const voice = document.getElementById("voice-selector").value;
-            const googleApiKey = document.getElementById("google-api").value;
-            const cx = document.getElementById("google-cx").value;
-            const huggingFaceKey = document.getElementById("huggingface-api").value;
-            const videoDiv = document.getElementById("video-results");
-            
-            fetch(`https://www.googleapis.com/customsearch/v1?q=${script}&cx=${cx}&key=${googleApiKey}`)
-                .then(response => response.json())
-                .then(data => {
-                    videoDiv.innerHTML = "";
-                    if (data.items) {
-                        data.items.slice(0, 3).forEach(item => {
-                            videoDiv.innerHTML += `<p>${item.title}</p><img src="${item.pagemap?.cse_image?.[0]?.src}" width="200">`;
-                        });
-                    }
-                })
-                .catch(error => console.error("Error fetching video images:", error));
-            
-            fetch(`https://api-inference.huggingface.co/models/facebook/fastspeech2`, {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${huggingFaceKey}` },
-                body: JSON.stringify({ text: script })
-            })
-                .then(response => response.blob())
-                .then(audioBlob => {
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    videoDiv.innerHTML += `<audio controls src="${audioUrl}"></audio>`;
-                })
-                .catch(error => console.error("Error generating audio:", error));
+            responsiveVoice.speak(text, voice);
+            document.getElementById("video-results").innerHTML = `<p>Video generated for: ${text}</p>`;
         }
     </script>
 </body>
 </html>
-
 
