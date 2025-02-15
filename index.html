@@ -27,10 +27,10 @@
 <body>
     <h1>AI Video Creator</h1>
     
-    <label for="video-text">Enter Script for Video Generation:</label>
+    <label>Enter Script for Video Generation:</label>
     <textarea id="video-text" rows="4" placeholder="Enter your script..."></textarea>
     
-    <label for="voice-selector">Select Voice:</label>
+    <label>Select Voice:</label>
     <select id="voice-selector">
         <option value="UK English Male">UK English Male</option>
         <option value="UK English Female">UK English Female</option>
@@ -50,82 +50,53 @@
     </div>
 
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
-
+    
     <script>
-        function waitForResponsiveVoice(callback) {
-            let checkInterval = setInterval(() => {
-                if (typeof responsiveVoice !== "undefined") {
-                    console.log("✅ ResponsiveVoice Loaded Successfully!");
-                    clearInterval(checkInterval);
-                    callback();
-                }
-            }, 500);
-        }
-
-        function speakText(text, voice) {
-            waitForResponsiveVoice(() => {
-                responsiveVoice.speak(text, voice);
-            });
-        }
-
         async function generateVideo() {
             const scriptText = document.getElementById("video-text").value;
             const voice = document.getElementById("voice-selector").value;
             const videoOutput = document.getElementById("video-output");
-            const audioOutput = document.getElementById("audio-output");
             
             const scenes = scriptText.split('.');
-            let sceneIndex = 0;
+            let videoClips = [];
 
-async function playScene() {
-    if (sceneIndex >= scenes.length) {
-        console.log("✅ All scenes played");
-        return;
-    }
-
-    let currentScene = scenes[sceneIndex].trim();
-    if (currentScene) {
-        try {
-            const response = await fetch("https://api.pexels.com/videos/search?query=" + encodeURIComponent(currentScene), {
-                headers: { Authorization: "YOUR_PEXELS_API_KEY" }
-            });
-            const data = await response.json();
-
-            if (data.videos.length > 0) {
-                let videoUrl = data.videos[0].video_files[0].link;
-
-                // Pause the current video and reset it before loading a new one
-                videoOutput.pause();
-                videoOutput.src = "";
-                videoOutput.load(); // Reset video element to prevent loading conflicts
-
-                // Assign the new video source and wait for it to load before playing
-                videoOutput.src = videoUrl;
-                videoOutput.oncanplaythrough = () => {
-                    console.log("🎥 Video loaded successfully: " + videoUrl);
-                    videoOutput.play();  // Play the video only when it's fully loaded
-                    speakText(currentScene, voice); // Speak the scene text
-
-                    videoOutput.onended = () => {
-                        sceneIndex++;
-                        playScene(); // Move to the next scene only after this one ends
-                    };
-                };
-            } else {
-                console.warn("⚠ No video found for scene: " + currentScene);
-                sceneIndex++;
-                playScene(); // Skip scene if no video is found
+            for (let i = 0; i < scenes.length; i++) {
+                let currentScene = scenes[i].trim();
+                if (currentScene) {
+                    try {
+                        const response = await fetch("https://api.pexels.com/videos/search?query=" + encodeURIComponent(currentScene), {
+                            headers: { Authorization: "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50" }
+                        });
+                        const data = await response.json();
+                        if (data.videos.length > 0) {
+                            let videoUrl = data.videos[0].video_files[0].link;
+                            videoClips.push(videoUrl);
+                        }
+                    } catch (error) {
+                        console.error("❌ Error fetching video:", error);
+                    }
+                }
             }
-        } catch (error) {
-            console.error("❌ Error fetching video:", error);
-            sceneIndex++;
-            playScene(); // Continue with the next scene even if an error occurs
-        }
-    }
-}
 
-
-            playScene();
+            if (videoClips.length > 0) {
+                try {
+                    const mergeResponse = await fetch("https://api-inference.huggingface.co/models/mys/multimodal-ffmpeg", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": "Bearer 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",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ inputs: videoClips, parameters: { output_format: "mp4" } })
+                    });
+                    const mergedVideo = await mergeResponse.json();
+                    if (mergedVideo.output_url) {
+                        videoOutput.src = mergedVideo.output_url;
+                        videoOutput.play();
+                    }
+                } catch (error) {
+                    console.error("❌ Error merging videos:", error);
+                }
+            }
         }
     </script>
 </body>
