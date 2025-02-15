@@ -28,11 +28,11 @@
     <h1>AI Video Creator</h1>
     
     <label>Enter Text for Image Generation:</label>
-    <textarea id="image-text" rows="2" placeholder="Enter text for images..."></textarea>
+    <textarea id="image-text" rows="4" placeholder="Enter text for image generation..."></textarea>
     <button onclick="generateImages()">Generate Images</button>
     
-    <label>Enter Script for Video:</label>
-    <textarea id="video-text" rows="4" placeholder="Enter your script..."></textarea>
+    <label>Enter Script for Video Generation:</label>
+    <textarea id="video-text" rows="4" placeholder="Enter script for video generation..."></textarea>
     
     <label>Select Voice:</label>
     <select id="voice-selector">
@@ -64,6 +64,7 @@
             const googleCx = "9128389fe7f334212";
             const unsplashApiKey = "ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0";
             const pexelsApiKey = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
+            const huggingfaceApiKey = "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";
 
             let images = [];
             
@@ -97,11 +98,11 @@
         }
 
         async function generateImages() {
-            const query = document.getElementById("image-text").value;
+            const imageText = document.getElementById("image-text").value;
             const imageResultsDiv = document.getElementById("image-results");
             
             imageResultsDiv.innerHTML = "<p>Loading images...</p>";
-            let images = await fetchImages(query);
+            let images = await fetchImages(imageText);
             imageResultsDiv.innerHTML = images.map(url => `<img src="${url}" width="200">`).join(" ");
         }
 
@@ -111,22 +112,20 @@
             const videoOutput = document.getElementById("video-output");
             const audioOutput = document.getElementById("audio-output");
             
+            responsiveVoice.speak(scriptText, voice, { onstart: function() {
+                console.log("Speech started, waiting for video...");
+            }, onend: function() {
+                console.log("Speech finished");
+            }});
+
             let images = await fetchImages(scriptText);
-            if (images.length === 0) {
-                alert("No images found. Please try again.");
-                return;
-            }
-            
             let video = document.createElement("video");
             video.setAttribute("controls", "");
             video.setAttribute("width", "600");
             video.innerHTML = images.map(url => `<source src="${url}" type="video/mp4">`).join(" ");
-            
-            video.onloadeddata = function () {
-                responsiveVoice.speak(scriptText, voice);
-            };
-            
             videoOutput.replaceWith(video);
+            
+            console.log("Video ready to play");
         }
     </script>
 </body>
