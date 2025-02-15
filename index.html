@@ -27,10 +27,10 @@
 <body>
     <h1>AI Video Creator</h1>
     
-    <label>Enter Script for Video Generation:</label>
+    <label for="video-text">Enter Script for Video Generation:</label>
     <textarea id="video-text" rows="4" placeholder="Enter your script..."></textarea>
     
-    <label>Select Voice:</label>
+    <label for="voice-selector">Select Voice:</label>
     <select id="voice-selector">
         <option value="UK English Male">UK English Male</option>
         <option value="UK English Female">UK English Female</option>
@@ -49,7 +49,7 @@
         <audio id="audio-output" controls></audio>
     </div>
 
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=YOUR_RESPONSIVEVOICE_API_KEY"></script>
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
         function waitForResponsiveVoice(callback) {
@@ -86,36 +86,37 @@
                 let currentScene = scenes[sceneIndex].trim();
                 if (currentScene) {
                     try {
-                        const pexelsResponse = await fetch("https://api.pexels.com/videos/search?query=" + encodeURIComponent(currentScene), {
+                        // Fetch video from Pexels API
+                        const response = await fetch("https://api.pexels.com/videos/search?query=" + encodeURIComponent(currentScene), {
                             headers: { Authorization: "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50" }
                         });
-                        const pexelsData = await pexelsResponse.json();
-                        
+                        const data = await response.json();
+
                         let videoUrl = "";
-                        if (pexelsData.videos.length > 0) {
-                            videoUrl = pexelsData.videos[0].video_files[0].link;
+                        if (data.videos.length > 0) {
+                            videoUrl = data.videos[0].video_files[0].link;
                         } else {
+                            // Fetch AI-generated video from Hugging Face API if no real-world video found
                             const hfResponse = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2", {
                                 method: "POST",
                                 headers: {
-                                    Authorization: "Bearer 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",
+                                    "Authorization": "Bearer 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",
                                     "Content-Type": "application/json"
                                 },
                                 body: JSON.stringify({ inputs: currentScene })
                             });
                             const hfData = await hfResponse.json();
-                            if (hfData.generated_video) {
-                                videoUrl = hfData.generated_video;
-                            }
+                            videoUrl = hfData.generated_video_url || "";
                         }
 
                         if (videoUrl) {
                             videoOutput.src = videoUrl;
                             videoOutput.play();
                             speakText(currentScene, voice);
-                            
                             sceneIndex++;
                             setTimeout(playScene, videoOutput.duration * 1000);
+                        } else {
+                            console.log("❌ No video found for scene: " + currentScene);
                         }
                     } catch (error) {
                         console.error("❌ Error fetching video:", error);
