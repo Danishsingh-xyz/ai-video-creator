@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        textarea, select, button {
+        textarea, select, button, input {
             padding: 10px;
             margin: 10px;
             width: 100%;
@@ -38,13 +38,13 @@
         <option value="US English Female">US English Female</option>
         <option value="Australian Male">Australian Male</option>
     </select>
-
+    
     <button onclick="generateVideo()">Generate Video</button>
-
+    
     <div class="output-section">
         <h3>Generated Video:</h3>
         <video id="video-output" controls></video>
-
+        
         <h3>Generated Audio:</h3>
         <audio id="audio-output" controls></audio>
     </div>
@@ -57,38 +57,37 @@
             const voice = document.getElementById("voice-selector").value;
             const videoOutput = document.getElementById("video-output");
             const audioOutput = document.getElementById("audio-output");
-
-            // Split the script into separate scenes
-            const scenes = scriptText.split(".");
-            let videoUrls = [];
+            
+            const scenes = scriptText.split('.');
+            let sceneVideos = [];
 
             for (let scene of scenes) {
                 let trimmedScene = scene.trim();
                 if (!trimmedScene) continue;
 
                 try {
-                    // Try to get a real-world video from Pexels
-                    const pexelsResponse = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(trimmedScene)}`, {
+                    // Fetch real-world video from Pexels
+                    const pexelsResponse = await fetch("https://api.pexels.com/videos/search?query=" + encodeURIComponent(trimmedScene), {
                         headers: { Authorization: "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50" }
                     });
                     const pexelsData = await pexelsResponse.json();
 
                     if (pexelsData.videos.length > 0) {
-                        videoUrls.push(pexelsData.videos[0].video_files[0].link);
+                        sceneVideos.push(pexelsData.videos[0].video_files[0].link);
                     } else {
-                        // If no real video is found, generate an AI video
-                        const aiVideoResponse = await fetch("https://api-inference.huggingface.co/models/cerspense/zeroScope_v2_576w", {
+                        // If no Pexels video found, generate AI video with RunwayML
+                        const runwayResponse = await fetch("https://api.runwayml.com/v1/models/runwayml/gen-2/generate", {
                             method: "POST",
                             headers: {
-                                "Authorization": "Bearer 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",
+                                "Authorization": "Bearer key_02579204f812e8d4d4d4474d601c91d1de6fd28282c47289b4b10ed811d572216f7545c9d216e1edbf615670283ddba0e18783cade49a8bdb459297452b19d8d",
                                 "Content-Type": "application/json"
                             },
-                            body: JSON.stringify({ inputs: trimmedScene })
+                            body: JSON.stringify({ prompt: trimmedScene })
                         });
+                        const runwayData = await runwayResponse.json();
 
-                        const aiVideoResult = await aiVideoResponse.json();
-                        if (aiVideoResult.video) {
-                            videoUrls.push(aiVideoResult.video);
+                        if (runwayData.video) {
+                            sceneVideos.push(runwayData.video);
                         }
                     }
                 } catch (error) {
@@ -96,32 +95,28 @@
                 }
             }
 
-            // Merge the videos into one (using a Hugging Face video merging model)
+            // Merge videos into one final video
             try {
-               const mergeResponse = await fetch("https://api-inference.huggingface.co/models/mys/multimodal-ffmpeg", {
-                   method: "POST",
+                const mergeResponse = await fetch("https://api.runwayml.com/v1/models/runwayml/video-merger", {
+                    method: "POST",
                     headers: {
-                        "Authorization": "Bearer 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",
+                        "Authorization": "Bearer key_02579204f812e8d4d4d4474d601c91d1de6fd28282c47289b4b10ed811d572216f7545c9d216e1edbf615670283ddba0e18783cade49a8bdb459297452b19d8d",
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ video_urls: videoUrls })
+                    body: JSON.stringify({ videos: sceneVideos })
                 });
-
-                const mergeResult = await mergeResponse.json();
-                if (mergeResult.video) {
-                    videoOutput.src = mergeResult.video;
+                const mergeData = await mergeResponse.json();
+                
+                if (mergeData.final_video) {
+                    videoOutput.src = mergeData.final_video;
                     videoOutput.play();
-                } else {
-                    console.error("❌ Error merging videos:", mergeResult);
                 }
             } catch (error) {
                 console.error("❌ Error merging videos:", error);
             }
-
-            // Generate AI Voice
-            responsiveVoice.speak(scriptText, voice);
         }
     </script>
 </body>
 </html>
+
 
