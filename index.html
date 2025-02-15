@@ -52,48 +52,49 @@
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
+        const PEXELS_API_KEY = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
+        const HUGGINGFACE_API_KEY = "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";
+
+        async function fetchVideoClips(query) {
+            let videos = [];
+            try {
+                let pexelsResponse = await fetch(`https://api.pexels.com/videos/search?query=${query}&per_page=5`, {
+                    headers: { Authorization: PEXELS_API_KEY }
+                });
+                let pexelsData = await pexelsResponse.json();
+                if (pexelsData.videos) videos.push(...pexelsData.videos.map(video => video.video_files[0].link));
+            } catch (error) {
+                console.error("Error fetching Pexels videos:", error);
+            }
+            return videos;
+        }
+
         async function generateVideo() {
             const scriptText = document.getElementById("video-text").value;
             const voice = document.getElementById("voice-selector").value;
             const videoOutput = document.getElementById("video-output");
             const audioOutput = document.getElementById("audio-output");
-
-            // Split script into scenes (assuming sentence-based split for now)
-            const scriptParts = scriptText.split('. ');
-            let sceneIndex = 0;
-
-            function playScene() {
-                if (sceneIndex >= scriptParts.length) {
-                    console.log("Video generation completed.");
-                    return;
+            
+            let sentences = scriptText.split(".");
+            let videoQueue = [];
+            
+            for (let sentence of sentences) {
+                let clips = await fetchVideoClips(sentence.trim());
+                if (clips.length > 0) {
+                    videoQueue.push(clips[0]);
                 }
-                
-                let currentSceneText = scriptParts[sceneIndex];
-                console.log("Playing Scene:", currentSceneText);
-                
-                // Call API to fetch video clip for this scene (Placeholder URL)
-                fetch(`https://api.example.com/generate-video?query=${encodeURIComponent(currentSceneText)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.video_url) {
-                            videoOutput.src = data.video_url;
-                            videoOutput.play();
-                            
-                            // Sync TTS with scene
-                            responsiveVoice.speak(currentSceneText, voice, {
-                                onend: function() {
-                                    sceneIndex++;
-                                    playScene(); // Move to next scene
-                                }
-                            });
-                        } else {
-                            console.error("Error fetching video clip");
-                        }
-                    })
-                    .catch(error => console.error("Error generating video:", error));
             }
-
-            playScene();
+            
+            if (videoQueue.length === 0) {
+                console.error("No videos found.");
+                return;
+            }
+            
+            responsiveVoice.speak(scriptText, voice, { onend: function() {
+                console.log("Speech finished, now playing video...");
+                videoOutput.src = videoQueue[0];
+                videoOutput.play();
+            }});
         }
     </script>
 </body>
