@@ -27,7 +27,7 @@
 <body>
     <h1>AI Video Creator</h1>
     
-    <label>Enter Script for Video Generation:</label>
+    <label for="video-text">Enter Script for Video Generation:</label>
     <textarea id="video-text" rows="4" placeholder="Enter your script..."></textarea>
     
     <label>Select Voice:</label>
@@ -52,21 +52,39 @@
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
-        const PEXELS_API_KEY = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
-        const HUGGINGFACE_API_KEY = "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";
+        const huggingfaceApiKey = "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"; 
+        const pexelsApiKey = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
 
-        async function fetchVideoClips(query) {
-            let videos = [];
+        async function fetchVideo(query) {
+            let videoUrl = "";
             try {
-                let pexelsResponse = await fetch(`https://api.pexels.com/videos/search?query=${query}&per_page=5`, {
-                    headers: { Authorization: PEXELS_API_KEY }
+                let response = await fetch(`https://api.pexels.com/videos/search?query=${query}&per_page=1`, {
+                    headers: { Authorization: pexelsApiKey }
                 });
-                let pexelsData = await pexelsResponse.json();
-                if (pexelsData.videos) videos.push(...pexelsData.videos.map(video => video.video_files[0].link));
+                let data = await response.json();
+                if (data.videos.length > 0) {
+                    videoUrl = data.videos[0].video_files[0].link;
+                }
             } catch (error) {
-                console.error("Error fetching Pexels videos:", error);
+                console.error("Error fetching real-world video:", error);
             }
-            return videos;
+            return videoUrl;
+        }
+
+        async function generateAIImage(query) {
+            let aiImageUrl = "";
+            try {
+                let response = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${huggingfaceApiKey}` },
+                    body: JSON.stringify({ inputs: query })
+                });
+                let blob = await response.blob();
+                aiImageUrl = URL.createObjectURL(blob);
+            } catch (error) {
+                console.error("Error generating AI image:", error);
+            }
+            return aiImageUrl;
         }
 
         async function generateVideo() {
@@ -75,29 +93,21 @@
             const videoOutput = document.getElementById("video-output");
             const audioOutput = document.getElementById("audio-output");
             
-            let sentences = scriptText.split(".");
-            let videoQueue = [];
-            
-            for (let sentence of sentences) {
-                let clips = await fetchVideoClips(sentence.trim());
-                if (clips.length > 0) {
-                    videoQueue.push(clips[0]);
-                }
+            let videoUrl = await fetchVideo(scriptText);
+            if (!videoUrl) {
+                videoUrl = await generateAIImage(scriptText);
             }
             
-            if (videoQueue.length === 0) {
-                console.error("No videos found.");
-                return;
+            if (videoUrl) {
+                videoOutput.src = videoUrl;
+                videoOutput.load();
             }
             
             responsiveVoice.speak(scriptText, voice, { onend: function() {
-                console.log("Speech finished, now playing video...");
-                videoOutput.src = videoQueue[0];
+                console.log("Speech finished, playing video...");
                 videoOutput.play();
             }});
         }
     </script>
 </body>
 </html>
-
-
