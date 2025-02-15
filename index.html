@@ -61,31 +61,40 @@
 <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 <script>
     async function generateVideo() {
+        const scriptText = document.getElementById("video-text").value;
+        const voice = document.getElementById("voice-selector").value;
         const videoOutput = document.getElementById("video-output");
+        const audioOutput = document.getElementById("audio-output");
 
-        if (!videoOutput) {
-            console.error("Error: Video element not found!");
+        if (!scriptText.trim()) {
+            alert("Please enter a script for video generation.");
             return;
         }
 
-        console.log("Generating test video...");
+        // Generate Speech First (Wait Until Speech Finishes)
+        responsiveVoice.speak(scriptText, voice, { onend: async function() {
+            console.log("Speech finished, now generating video...");
 
-        videoOutput.innerHTML = ""; // Clear previous sources
-        let source = document.createElement("source");
-        source.src = "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4";
-        source.type = "video/mp4";
+            try {
+                let response = await fetch('https://api.example.com/generate-video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: scriptText })
+                });
 
-        videoOutput.appendChild(source);
-        videoOutput.load();
+                if (!response.ok) throw new Error("Video generation failed!");
 
-        videoOutput.onloadeddata = () => {
-            console.log("Video loaded, playing now...");
-            videoOutput.play();
-        };
+                let data = await response.json();
+                videoOutput.src = data.video_url;
+                videoOutput.load();
+                videoOutput.play();
+                console.log("Video is playing...");
 
-        videoOutput.onerror = () => {
-            console.error("Error loading video.");
-        };
+            } catch (error) {
+                console.error("Error generating video:", error);
+                alert("Failed to generate video. Please try again.");
+            }
+        }});
     }
 </script>
 </html>
