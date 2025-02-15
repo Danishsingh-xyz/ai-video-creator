@@ -27,12 +27,12 @@
 <body>
     <h1>AI Video Creator</h1>
     
-    <label>Enter Script for Images:</label>
-    <textarea id="image-text" rows="4" placeholder="Enter text for image generation..."></textarea>
+    <label>Enter Text for Image Generation:</label>
+    <textarea id="image-text" rows="2" placeholder="Enter text for images..."></textarea>
     <button onclick="generateImages()">Generate Images</button>
     
     <label>Enter Script for Video:</label>
-    <textarea id="video-text" rows="4" placeholder="Enter script for video generation..."></textarea>
+    <textarea id="video-text" rows="4" placeholder="Enter your script..."></textarea>
     
     <label>Select Voice:</label>
     <select id="voice-selector">
@@ -97,11 +97,11 @@
         }
 
         async function generateImages() {
-            const scriptText = document.getElementById("image-text").value;
+            const query = document.getElementById("image-text").value;
             const imageResultsDiv = document.getElementById("image-results");
             
             imageResultsDiv.innerHTML = "<p>Loading images...</p>";
-            let images = await fetchImages(scriptText);
+            let images = await fetchImages(query);
             imageResultsDiv.innerHTML = images.map(url => `<img src="${url}" width="200">`).join(" ");
         }
 
@@ -110,26 +110,23 @@
             const voice = document.getElementById("voice-selector").value;
             const videoOutput = document.getElementById("video-output");
             const audioOutput = document.getElementById("audio-output");
-
-            let images = await fetchImages(scriptText);
             
+            let images = await fetchImages(scriptText);
             if (images.length === 0) {
-                alert("No images found for the video!");
+                alert("No images found. Please try again.");
                 return;
             }
             
             let video = document.createElement("video");
             video.setAttribute("controls", "");
             video.setAttribute("width", "600");
+            video.innerHTML = images.map(url => `<source src="${url}" type="video/mp4">`).join(" ");
             
-            let sources = images.map(url => `<source src="${url}" type="video/mp4">`).join(" ");
-            video.innerHTML = sources;
-            videoOutput.replaceWith(video);
-            
-            video.onloadeddata = function() {
+            video.onloadeddata = function () {
                 responsiveVoice.speak(scriptText, voice);
-                video.play();
             };
+            
+            videoOutput.replaceWith(video);
         }
     </script>
 </body>
