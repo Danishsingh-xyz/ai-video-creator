@@ -50,52 +50,84 @@
     </div>
 
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
-    
+
     <script>
+        const HF_API_KEY = "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";  
+        const PEXELS_API_KEY = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
+        const HF_VIDEO_MERGE_API = "https://api-inference.huggingface.co/models/ffmpeg/video-merge";  
+
+        function waitForResponsiveVoice(callback) {
+            let checkInterval = setInterval(() => {
+                if (typeof responsiveVoice !== "undefined") {
+                    console.log("✅ ResponsiveVoice Loaded Successfully!");
+                    clearInterval(checkInterval);
+                    callback();
+                }
+            }, 500);
+        }
+
+        function speakText(text, voice) {
+            waitForResponsiveVoice(() => {
+                responsiveVoice.speak(text, voice);
+            });
+        }
+
         async function generateVideo() {
             const scriptText = document.getElementById("video-text").value;
             const voice = document.getElementById("voice-selector").value;
             const videoOutput = document.getElementById("video-output");
+            const audioOutput = document.getElementById("audio-output");
             
             const scenes = scriptText.split('.');
-            let videoClips = [];
+            let videoFiles = [];
 
-            for (let i = 0; i < scenes.length; i++) {
-                let currentScene = scenes[i].trim();
-                if (currentScene) {
-                    try {
-                        const response = await fetch("https://api.pexels.com/videos/search?query=" + encodeURIComponent(currentScene), {
-                            headers: { Authorization: "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50" }
-                        });
-                        const data = await response.json();
-                        if (data.videos.length > 0) {
-                            let videoUrl = data.videos[0].video_files[0].link;
-                            videoClips.push(videoUrl);
-                        }
-                    } catch (error) {
-                        console.error("❌ Error fetching video:", error);
+            for (let scene of scenes) {
+                let trimmedScene = scene.trim();
+                if (!trimmedScene) continue;
+
+                try {
+                    const response = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(trimmedScene)}`, {
+                        headers: { Authorization: n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50 }
+                    });
+                    const data = await response.json();
+
+                    if (data.videos.length > 0) {
+                        videoFiles.push(data.videos[0].video_files[0].link);
                     }
+                } catch (error) {
+                    console.error("❌ Error fetching video:", error);
                 }
             }
 
-            if (videoClips.length > 0) {
-                try {
-                    const mergeResponse = await fetch("https://api-inference.huggingface.co/models/mys/multimodal-ffmpeg", {
-                        method: "POST",
-                        headers: {
-                            "Authorization": "Bearer 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",
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ inputs: videoClips, parameters: { output_format: "mp4" } })
-                    });
-                    const mergedVideo = await mergeResponse.json();
-                    if (mergedVideo.output_url) {
-                        videoOutput.src = mergedVideo.output_url;
-                        videoOutput.play();
-                    }
-                } catch (error) {
-                    console.error("❌ Error merging videos:", error);
+            if (videoFiles.length === 0) {
+                alert("No videos found for the script.");
+                return;
+            }
+
+            speakText(scriptText, voice);
+
+            try {
+                const mergeResponse = await fetchhttps://api-inference.huggingface.co/models/ffmpeg/video-merge, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${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}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ video_files: videoFiles })
+                });
+
+                const mergedVideo = await mergeResponse.json();
+
+                if (mergedVideo.error) {
+                    console.error("❌ Error merging video:", mergedVideo.error);
+                    return;
                 }
+
+                videoOutput.src = mergedVideo.video_url;
+                videoOutput.play();
+
+            } catch (error) {
+                console.error("❌ Error merging video:", error);
             }
         }
     </script>
