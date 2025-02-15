@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        textarea, select, button {
+        textarea, select, button, input {
             padding: 10px;
             margin: 10px;
             width: 100%;
@@ -27,12 +27,28 @@
 <body>
     <h1>AI Video Creator</h1>
     
-    <label>Enter Text for Image Generation:</label>
-    <textarea id="image-text" rows="4" placeholder="Enter text for image generation..."></textarea>
+    <label for="huggingface-api">Hugging Face API Key:</label>
+    <input type="text" id="huggingface-api" placeholder="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">
+
+    <label for="google-api">Google API Key:</label>
+    <input type="text" id="google-api" placeholder="AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog">
+
+    <label for="google-cx">Google CX ID:</label>
+    <input type="text" id="google-cx" placeholder="9128389fe7f334212">
+
+    <label for="unsplash-api">Unsplash API Key:</label>
+    <input type="text" id="unsplash-api" placeholder="ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0">
+
+    <label for="pexels-api">Pexels API Key:</label>
+    <input type="text" id="pexels-api" placeholder="n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50">
+    
+    <label>Enter Script for Image Generation:</label>
+    <textarea id="image-text" rows="4" placeholder="Enter your script..."></textarea>
+    
     <button onclick="generateImages()">Generate Images</button>
     
     <label>Enter Script for Video Generation:</label>
-    <textarea id="video-text" rows="4" placeholder="Enter script for video generation..."></textarea>
+    <textarea id="video-text" rows="4" placeholder="Enter your script..."></textarea>
     
     <label>Select Voice:</label>
     <select id="voice-selector">
@@ -60,11 +76,10 @@
 
     <script>
         async function fetchImages(query) {
-            const googleApiKey = "AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog";
-            const googleCx = "9128389fe7f334212";
-            const unsplashApiKey = "ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0";
-            const pexelsApiKey = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
-            const huggingfaceApiKey = "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";
+            const googleApiKey = document.getElementById("google-api").value;
+            const googleCx = document.getElementById("google-cx").value;
+            const unsplashApiKey = document.getElementById("unsplash-api").value;
+            const pexelsApiKey = document.getElementById("pexels-api").value;
 
             let images = [];
             
@@ -94,16 +109,13 @@
                 console.error("Error fetching Pexels images:", error);
             }
             
-            return images.slice(0, 5);
+            document.getElementById("image-results").innerHTML = images.map(url => `<img src="${url}" width="200">`).join(" ");
         }
 
         async function generateImages() {
-            const imageText = document.getElementById("image-text").value;
-            const imageResultsDiv = document.getElementById("image-results");
-            
-            imageResultsDiv.innerHTML = "<p>Loading images...</p>";
-            let images = await fetchImages(imageText);
-            imageResultsDiv.innerHTML = images.map(url => `<img src="${url}" width="200">`).join(" ");
+            const scriptText = document.getElementById("image-text").value;
+            document.getElementById("image-results").innerHTML = "<p>Loading images...</p>";
+            await fetchImages(scriptText);
         }
 
         async function generateVideo() {
@@ -112,22 +124,11 @@
             const videoOutput = document.getElementById("video-output");
             const audioOutput = document.getElementById("audio-output");
             
-            responsiveVoice.speak(scriptText, voice, { onstart: function() {
-                console.log("Speech started, waiting for video...");
-            }, onend: function() {
-                console.log("Speech finished");
+            responsiveVoice.speak(scriptText, voice, { onend: function() {
+                console.log("Speech finished, now generating video...");
+                videoOutput.innerHTML = `<source src="generated-video.mp4" type="video/mp4">`;
             }});
-
-            let images = await fetchImages(scriptText);
-            let video = document.createElement("video");
-            video.setAttribute("controls", "");
-            video.setAttribute("width", "600");
-            video.innerHTML = images.map(url => `<source src="${url}" type="video/mp4">`).join(" ");
-            videoOutput.replaceWith(video);
-            
-            console.log("Video ready to play");
         }
     </script>
 </body>
 </html>
-
