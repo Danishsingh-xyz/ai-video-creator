@@ -106,16 +106,18 @@
             await fetchImages(scriptText);
         }
 
-        async function generateVideo() {
-            const scriptText = document.getElementById("video-text").value;
-            const voice = document.getElementById("voice-selector").value;
-            const videoOutput = document.getElementById("video-output");
-            const audioOutput = document.getElementById("audio-output");
-            
-            responsiveVoice.speak(scriptText, voice, { onend: function() {
-                console.log("Speech finished, now generating video...");
-                videoOutput.innerHTML = `<source src="generated-video.mp4" type="video/mp4">`;
-            }});
+       async function generateVideo() {
+    const videoOutput = document.getElementById("video-output");
+    
+    console.log("Generating test video...");
+
+    // Temporary test: Just load a sample video to see if it plays
+    videoOutput.innerHTML = `<source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">`;
+    videoOutput.load();
+    videoOutput.play();
+
+    console.log("Test video loaded.");
+       }
         }
     </script>
 </body>
