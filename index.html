@@ -106,19 +106,33 @@
             await fetchImages(scriptText);
         }
 
-       async function generateVideo() {
+     async function generateVideo() {
     const videoOutput = document.getElementById("video-output");
-    
+
+    if (!videoOutput) {
+        console.error("Error: Video element not found!");
+        return;
+    }
+
     console.log("Generating test video...");
 
-    // Temporary test: Just load a sample video to see if it plays
-    videoOutput.innerHTML = `<source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">`;
-    videoOutput.load();
-    videoOutput.play();
+    videoOutput.innerHTML = ""; // Clear previous sources
+    let source = document.createElement("source");
+    source.src = "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4";
+    source.type = "video/mp4";
 
-    console.log("Test video loaded.");
-       }
-        }
+    videoOutput.appendChild(source);
+    videoOutput.load();
+
+    videoOutput.onloadeddata = () => {
+        console.log("Video loaded, playing now...");
+        videoOutput.play();
+    };
+
+    videoOutput.onerror = () => {
+        console.error("Error loading video.");
+    };
+}
     </script>
 </body>
 </html>
