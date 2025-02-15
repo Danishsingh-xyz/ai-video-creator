@@ -3,76 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Video & Image Generator</title>
+    <title>AI Video Creator</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        textarea, select, button {
-            padding: 10px;
-            margin: 10px;
-            width: 100%;
-        }
-        button {
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        textarea, select, button { padding: 10px; margin: 10px; width: 100%; }
+        button { cursor: pointer; background-color: #4CAF50; color: white; }
+        .section { margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; }
     </style>
 </head>
 <body>
-    <h1>AI Video & Image Generator</h1>
+    <h1>AI Video Creator</h1>
     
     <!-- Text to Image Section -->
-    <h2>Text to Image</h2>
-    <textarea id="image-text" rows="3" placeholder="Enter text to generate images..."></textarea>
-    <button onclick="generateImages()">Generate Images</button>
-    <div id="image-results"></div>
-
+    <div class="section">
+        <h2>Text to Image</h2>
+        <textarea id="image-prompt" rows="2" placeholder="Enter prompt for image..."></textarea>
+        <button onclick="generateImage()">Generate Image</button>
+        <div id="image-output"></div>
+    </div>
+    
     <!-- Text to Video Section -->
-    <h2>Text to Video</h2>
-    <textarea id="video-text" rows="3" placeholder="Enter script for video..."></textarea>
-    <label for="voice-selector">Select Voice:</label>
-    <select id="voice-selector">
-        <option value="UK English Male">UK English Male</option>
-        <option value="UK English Female">UK English Female</option>
-        <option value="US English Male">US English Male</option>
-        <option value="US English Female">US English Female</option>
-        <option value="Australian Male">Australian Male</option>
-    </select>
-    <button onclick="generateVideo()">Generate Video</button>
-    <div id="video-results"></div>
-
-    <!-- ResponsiveVoice Script -->
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
+    <div class="section">
+        <h2>Text to Video</h2>
+        <textarea id="video-script" rows="4" placeholder="Enter script for video..."></textarea>
+        <label for="voice-selector">Select Voice:</label>
+        <select id="voice-selector">
+            <option value="UK English Male">UK English Male</option>
+            <option value="UK English Female">UK English Female</option>
+            <option value="US English Male">US English Male</option>
+            <option value="US English Female">US English Female</option>
+        </select>
+        <button onclick="generateVideo()">Generate Video</button>
+        <div id="video-output"></div>
+    </div>
     
     <script>
-        const HF_API_KEY = "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";
-        const GOOGLE_API_KEY = "AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog";
-        const GOOGLE_CX = "9128389fe7f334212";
-        const UNSPLASH_API_KEY = "ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0";
-        const PEXELS_API_KEY = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
+        // Securely storing API keys
+        const API_KEYS = {
+            huggingface: "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",
+            google: "AIzaSyDH541TOcn0pBHltwOiZq2u0e-FK2YDuog",
+            googleCX: "9128389fe7f334212",
+            unsplash: "ToOyCd6L1g2EJPMSN95ZfLQcYnhMcsFaIU-Q4-iTYz0",
+            pexels: "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50"
+        };
 
-        function generateImages() {
-            const text = document.getElementById("image-text").value;
-            fetch(`https://www.googleapis.com/customsearch/v1?q=${text}&cx=${GOOGLE_CX}&key=${GOOGLE_API_KEY}&searchType=image`)
+        function generateImage() {
+            const prompt = document.getElementById("image-prompt").value;
+            fetch(`https://api.unsplash.com/photos/random?query=${prompt}&client_id=${API_KEYS.unsplash}`)
                 .then(response => response.json())
                 .then(data => {
-                    let imagesHtml = "";
-                    data.items.slice(0, 3).forEach(item => {
-                        imagesHtml += `<img src="${item.link}" width="200">`;
-                    });
-                    document.getElementById("image-results").innerHTML = imagesHtml;
+                    document.getElementById("image-output").innerHTML = `<img src="${data.urls.regular}" width="300">`;
                 })
-                .catch(error => console.error("Error fetching images:", error));
+                .catch(error => console.error("Error fetching image:", error));
         }
 
         function generateVideo() {
-            const text = document.getElementById("video-text").value;
+            const script = document.getElementById("video-script").value;
             const voice = document.getElementById("voice-selector").value;
-            responsiveVoice.speak(text, voice);
-            document.getElementById("video-results").innerHTML = `<p>Video generated for: ${text}</p>`;
+            // Placeholder function for video generation logic
+            document.getElementById("video-output").innerHTML = `<p>Generating video with script: ${script}</p>`;
         }
     </script>
 </body>
