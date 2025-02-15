@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        textarea, select, button {
+        textarea, select, button, input {
             padding: 10px;
             margin: 10px;
             width: 100%;
@@ -49,81 +49,66 @@
         <audio id="audio-output" controls></audio>
     </div>
 
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=YOUR_RESPONSIVE_VOICE_API_KEY"></script>
-    
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
+
     <script>
-        const huggingFaceApiKey = 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";
         const pexelsApiKey = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
+        const huggingFaceApiKey = "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";
 
-        async function fetchVideoScenes(script) {
-            let sentences = script.split(".");
-            let videos = [];
-
-            for (let sentence of sentences) {
-                let query = sentence.trim();
-                if (!query) continue;
-                
-                try {
-                    let pexelsResponse = await fetch(`https://api.pexels.com/videos/search?query=${query}`, {
-                        headers: { Authorization: pexelsApiKey }
-                    });
-                    let pexelsData = await pexelsResponse.json();
-                    if (pexelsData.videos.length > 0) {
-                        videos.push(pexelsData.videos[0].video_files[0].link);
-                        continue;
-                    }
-                } catch (error) {
-                    console.error("Error fetching Pexels video:", error);
-                }
-                
-                try {
-                    let huggingFaceResponse = await fetch(`https://api-inference.huggingface.co/models/YOUR_MODEL`, {
-                        method: "POST",
-                        headers: { Authorization: `Bearer ${huggingFaceApiKey}` },
-                        body: JSON.stringify({ inputs: query })
-                    });
-                    let huggingFaceData = await huggingFaceResponse.json();
-                    if (huggingFaceData.video_url) {
-                        videos.push(huggingFaceData.video_url);
-                    }
-                } catch (error) {
-                    console.error("Error fetching Hugging Face AI-generated video:", error);
-                }
-            }
-            return videos;
-        }
-        
         async function generateVideo() {
             const scriptText = document.getElementById("video-text").value;
             const voice = document.getElementById("voice-selector").value;
             const videoOutput = document.getElementById("video-output");
             const audioOutput = document.getElementById("audio-output");
             
-            let videoScenes = await fetchVideoScenes(scriptText);
-            if (videoScenes.length === 0) {
-                console.error("No video scenes found.");
-                return;
-            }
-            
-            let currentScene = 0;
-            function playScene() {
-                if (currentScene >= videoScenes.length) return;
-                videoOutput.src = videoScenes[currentScene];
-                videoOutput.play();
-                currentScene++;
-                videoOutput.onended = playScene;
-            }
-            
-            responsiveVoice.speak(scriptText, voice, {
-                onstart: function () {
-                    console.log("Speech started");
-                    playScene();
-                },
-                onend: function () {
-                    console.log("Speech finished");
+            const scenes = scriptText.split('.');
+            let sceneIndex = 0;
+            let videoQueue = [];
+
+            async function fetchVideo(scene) {
+                try {
+                    let response = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(scene)}`, {
+                        headers: { Authorization: pexelsApiKey }
+                    });
+                    let data = await response.json();
+                    return data.videos.length > 0 ? data.videos[0].video_files[0].link : null;
+                } catch (error) {
+                    console.error("Error fetching video:", error);
+                    return null;
                 }
-            });
+            }
+
+            async function playScene() {
+                if (sceneIndex >= scenes.length) {
+                    console.log("All scenes played");
+                    return;
+                }
+                let currentScene = scenes[sceneIndex].trim();
+                if (currentScene) {
+                    let videoUrl = await fetchVideo(currentScene);
+                    if (videoUrl) {
+                        videoQueue.push(videoUrl);
+                        if (videoQueue.length === 1) {
+                            playNextVideo();
+                        }
+                    }
+                }
+            }
+            
+            function playNextVideo() {
+                if (videoQueue.length === 0) return;
+                let videoUrl = videoQueue.shift();
+                videoOutput.src = videoUrl;
+                videoOutput.play();
+                responsiveVoice.speak(scenes[sceneIndex], voice, { onend: () => {
+                    sceneIndex++;
+                    playScene();
+                }});
+            }
+            
+            playScene();
         }
     </script>
 </body>
 </html>
+
