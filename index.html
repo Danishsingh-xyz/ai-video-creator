@@ -49,12 +49,9 @@
         <audio id="audio-output" controls></audio>
     </div>
 
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=YOUR_RESPONSIVE_VOICE_API_KEY"></script>
 
     <script>
-        const pexelsApiKey = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
-        const huggingFaceApiKey = "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";
-
         async function generateVideo() {
             const scriptText = document.getElementById("video-text").value;
             const voice = document.getElementById("voice-selector").value;
@@ -63,52 +60,49 @@
             
             const scenes = scriptText.split('.');
             let sceneIndex = 0;
-            let videoQueue = [];
 
-            async function fetchVideo(scene) {
-                try {
-                    let response = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(scene)}`, {
-                        headers: { Authorization: pexelsApiKey }
-                    });
-                    let data = await response.json();
-                    return data.videos.length > 0 ? data.videos[0].video_files[0].link : null;
-                } catch (error) {
-                    console.error("Error fetching video:", error);
-                    return null;
-                }
-            }
-
-            async function playScene() {
+            function playScene() {
                 if (sceneIndex >= scenes.length) {
                     console.log("All scenes played");
                     return;
                 }
                 let currentScene = scenes[sceneIndex].trim();
                 if (currentScene) {
-                    let videoUrl = await fetchVideo(currentScene);
-                    if (videoUrl) {
-                        videoQueue.push(videoUrl);
-                        if (videoQueue.length === 1) {
-                            playNextVideo();
+                    fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(currentScene)}`, {
+                        headers: { Authorization: "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50" }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.videos.length > 0) {
+                            let videoUrl = data.videos[0].video_files[0].link;
+                            videoOutput.src = videoUrl;
+                            videoOutput.play();
+                            
+                            responsiveVoice.speak(currentScene, voice, { onend: () => {
+                                sceneIndex++;
+                                playScene();
+                            }});
                         }
-                    }
+                    })
+                    .catch(error => console.error("Error fetching video:", error));
                 }
             }
             
-            function playNextVideo() {
-                if (videoQueue.length === 0) return;
-                let videoUrl = videoQueue.shift();
-                videoOutput.src = videoUrl;
-                videoOutput.play();
-                responsiveVoice.speak(scenes[sceneIndex], voice, { onend: () => {
-                    sceneIndex++;
-                    playScene();
-                }});
-            }
-            
-            playScene();
+            fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2", {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer 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",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ inputs: scriptText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Hugging Face response:", data);
+                playScene();
+            })
+            .catch(error => console.error("Error fetching AI-generated content:", error));
         }
     </script>
 </body>
 </html>
-
