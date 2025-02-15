@@ -94,27 +94,36 @@ async function playScene() {
             if (data.videos.length > 0) {
                 let videoUrl = data.videos[0].video_files[0].link;
 
-                // Pause and reset the video before changing the source
+                // Pause the current video and reset it before loading a new one
                 videoOutput.pause();
                 videoOutput.src = "";
-                videoOutput.load(); // Reset the video element
+                videoOutput.load(); // Reset video element to prevent loading conflicts
 
+                // Assign the new video source and wait for it to load before playing
                 videoOutput.src = videoUrl;
-                videoOutput.onloadeddata = () => {
-                    videoOutput.play();
-                    speakText(currentScene, voice);
-                    
+                videoOutput.oncanplaythrough = () => {
+                    console.log("🎥 Video loaded successfully: " + videoUrl);
+                    videoOutput.play();  // Play the video only when it's fully loaded
+                    speakText(currentScene, voice); // Speak the scene text
+
                     videoOutput.onended = () => {
                         sceneIndex++;
-                        playScene();
+                        playScene(); // Move to the next scene only after this one ends
                     };
                 };
+            } else {
+                console.warn("⚠ No video found for scene: " + currentScene);
+                sceneIndex++;
+                playScene(); // Skip scene if no video is found
             }
         } catch (error) {
             console.error("❌ Error fetching video:", error);
+            sceneIndex++;
+            playScene(); // Continue with the next scene even if an error occurs
         }
     }
 }
+
 
             playScene();
         }
