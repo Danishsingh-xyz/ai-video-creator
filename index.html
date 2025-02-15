@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        textarea, select, button, input {
+        textarea, select, button {
             padding: 10px;
             margin: 10px;
             width: 100%;
@@ -38,13 +38,13 @@
         <option value="US English Female">US English Female</option>
         <option value="Australian Male">Australian Male</option>
     </select>
-    
+
     <button onclick="generateVideo()">Generate Video</button>
-    
+
     <div class="output-section">
         <h3>Generated Video:</h3>
         <video id="video-output" controls></video>
-        
+
         <h3>Generated Audio:</h3>
         <audio id="audio-output" controls></audio>
     </div>
@@ -52,83 +52,74 @@
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
-        const HF_API_KEY = "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";  
-        const PEXELS_API_KEY = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
-        const HF_VIDEO_MERGE_API = "https://api-inference.huggingface.co/models/ffmpeg/video-merge";  
-
-        function waitForResponsiveVoice(callback) {
-            let checkInterval = setInterval(() => {
-                if (typeof responsiveVoice !== "undefined") {
-                    console.log("✅ ResponsiveVoice Loaded Successfully!");
-                    clearInterval(checkInterval);
-                    callback();
-                }
-            }, 500);
-        }
-
-        function speakText(text, voice) {
-            waitForResponsiveVoice(() => {
-                responsiveVoice.speak(text, voice);
-            });
-        }
-
         async function generateVideo() {
             const scriptText = document.getElementById("video-text").value;
             const voice = document.getElementById("voice-selector").value;
             const videoOutput = document.getElementById("video-output");
             const audioOutput = document.getElementById("audio-output");
-            
-            const scenes = scriptText.split('.');
-            let videoFiles = [];
+
+            // Split the script into separate scenes
+            const scenes = scriptText.split(".");
+            let videoUrls = [];
 
             for (let scene of scenes) {
                 let trimmedScene = scene.trim();
                 if (!trimmedScene) continue;
 
                 try {
-                    const response = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(trimmedScene)}`, {
-                        headers: { Authorization: n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50 }
+                    // Try to get a real-world video from Pexels
+                    const pexelsResponse = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(trimmedScene)}`, {
+                        headers: { Authorization: "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50" }
                     });
-                    const data = await response.json();
+                    const pexelsData = await pexelsResponse.json();
 
-                    if (data.videos.length > 0) {
-                        videoFiles.push(data.videos[0].video_files[0].link);
+                    if (pexelsData.videos.length > 0) {
+                        videoUrls.push(pexelsData.videos[0].video_files[0].link);
+                    } else {
+                        // If no real video is found, generate an AI video
+                        const aiVideoResponse = await fetch("https://api-inference.huggingface.co/models/cerspense/zeroScope_v2_576w", {
+                            method: "POST",
+                            headers: {
+                                "Authorization": "Bearerhf_OuRYXjOZqKgcfSJPkPjORLLsploDVfJspw",
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ inputs: trimmedScene })
+                        });
+
+                        const aiVideoResult = await aiVideoResponse.json();
+                        if (aiVideoResult.video) {
+                            videoUrls.push(aiVideoResult.video);
+                        }
                     }
                 } catch (error) {
                     console.error("❌ Error fetching video:", error);
                 }
             }
 
-            if (videoFiles.length === 0) {
-                alert("No videos found for the script.");
-                return;
-            }
-
-            speakText(scriptText, voice);
-
+            // Merge the videos into one (using a Hugging Face video merging model)
             try {
-                const mergeResponse = await fetchhttps:/https://api-inference.huggingface.co/models/cerspense/zeroScope_v2_576w, {
+                const mergeResponse = await fetch("https://api-inference.huggingface.co/models/runwayml/stable-video-diffusion", {
                     method: "POST",
                     headers: {
-                        "Authorization": `Bearer ${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}`,
+                        "Authorization": "Bearer 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",
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ video_files: videoFiles })
+                    body: JSON.stringify({ video_urls: videoUrls })
                 });
 
-                const mergedVideo = await mergeResponse.json();
-
-                if (mergedVideo.error) {
-                    console.error("❌ Error merging video:", mergedVideo.error);
-                    return;
+                const mergeResult = await mergeResponse.json();
+                if (mergeResult.video) {
+                    videoOutput.src = mergeResult.video;
+                    videoOutput.play();
+                } else {
+                    console.error("❌ Error merging videos:", mergeResult);
                 }
-
-                videoOutput.src = mergedVideo.video_url;
-                videoOutput.play();
-
             } catch (error) {
-                console.error("❌ Error merging video:", error);
+                console.error("❌ Error merging videos:", error);
             }
+
+            // Generate AI Voice
+            responsiveVoice.speak(scriptText, voice);
         }
     </script>
 </body>
