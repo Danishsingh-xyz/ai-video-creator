@@ -49,7 +49,7 @@
         <audio id="audio-output" controls></audio>
     </div>
 
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=YOUR_RESPONSIVE_VOICE_API_KEY"></script>
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
         async function generateVideo() {
@@ -88,21 +88,23 @@
                 }
             }
             
-            fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2", {
-                method: "POST",
-                headers: {
-                    "Authorization": "Bearer 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",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ inputs: scriptText })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Hugging Face response:", data);
-                playScene();
-            })
-            .catch(error => console.error("Error fetching AI-generated content:", error));
+            // Generate AI-based video if no real-world video found
+            async function generateAIImage(query) {
+                const hfResponse = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer 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",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ inputs: query })
+                });
+                const aiImageBlob = await hfResponse.blob();
+                return URL.createObjectURL(aiImageBlob);
+            }
+            
+            playScene();
         }
     </script>
 </body>
 </html>
+
