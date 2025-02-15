@@ -52,65 +52,51 @@
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
-        const pexelsApiKey = "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50";
-        const huggingFaceApiKey = "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";
-
-        async function fetchPexelsVideo(query) {
-            try {
-                let response = await fetch(`https://api.pexels.com/videos/search?query=${query}`, {
-                    headers: { Authorization: pexelsApiKey }
-                });
-                let data = await response.json();
-                if (data.videos.length > 0) {
-                    return data.videos[0].video_files[0].link;
-                }
-            } catch (error) {
-                console.error("Error fetching Pexels video:", error);
-            }
-            return null;
-        }
-
-        async function generateAiVideo(prompt) {
-            try {
-                let response = await fetch("https://api-inference.huggingface.co/models/damo-vilab/modelscope-text-to-video-synthesis", {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${huggingFaceApiKey}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ inputs: prompt })
-                });
-                let blob = await response.blob();
-                return URL.createObjectURL(blob);
-            } catch (error) {
-                console.error("Error generating AI video:", error);
-                return null;
-            }
-        }
-
         async function generateVideo() {
             const scriptText = document.getElementById("video-text").value;
             const voice = document.getElementById("voice-selector").value;
             const videoOutput = document.getElementById("video-output");
             const audioOutput = document.getElementById("audio-output");
 
-            let videoUrl = await fetchPexelsVideo(scriptText);
-            if (!videoUrl) {
-                videoUrl = await generateAiVideo(scriptText);
+            // Split script into scenes (assuming sentence-based split for now)
+            const scriptParts = scriptText.split('. ');
+            let sceneIndex = 0;
+
+            function playScene() {
+                if (sceneIndex >= scriptParts.length) {
+                    console.log("Video generation completed.");
+                    return;
+                }
+                
+                let currentSceneText = scriptParts[sceneIndex];
+                console.log("Playing Scene:", currentSceneText);
+                
+                // Call API to fetch video clip for this scene (Placeholder URL)
+                fetch(`https://api.example.com/generate-video?query=${encodeURIComponent(currentSceneText)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.video_url) {
+                            videoOutput.src = data.video_url;
+                            videoOutput.play();
+                            
+                            // Sync TTS with scene
+                            responsiveVoice.speak(currentSceneText, voice, {
+                                onend: function() {
+                                    sceneIndex++;
+                                    playScene(); // Move to next scene
+                                }
+                            });
+                        } else {
+                            console.error("Error fetching video clip");
+                        }
+                    })
+                    .catch(error => console.error("Error generating video:", error));
             }
 
-            if (videoUrl) {
-                videoOutput.src = videoUrl;
-                videoOutput.load();
-                videoOutput.onloadeddata = () => {
-                    responsiveVoice.speak(scriptText, voice);
-                    videoOutput.play();
-                };
-            } else {
-                console.error("No video generated");
-            }
+            playScene();
         }
     </script>
 </body>
 </html>
+
 
