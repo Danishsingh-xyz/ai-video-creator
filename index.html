@@ -81,8 +81,7 @@
                     if (!videoUrl) {
                         videoUrl = await generateVideoWithRunwayML(segment);
                     }
-
-                    // Step 4: Set the video source and play it
+                 // Step 4: Set the video source and play it
                     if (videoUrl) {
                         videoOutput.src = videoUrl; // Set the video source
                         videoOutput.play(); // Play the video
