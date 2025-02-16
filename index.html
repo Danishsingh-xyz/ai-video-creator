@@ -107,8 +107,8 @@
                 }
             }
 
-            // Combine videos and audio into a single cohesive output
-            combineAndPlay(videoClips, audioDurations, segments, voice, videoOutput, audioOutput);
+            // Combine videos into a single cohesive output
+            combineVideos(videoClips, audioDurations, segments, voice, videoOutput, audioOutput);
         }
 
         // Function to Split Script into Smaller Segments
@@ -202,46 +202,51 @@
             }
         }
 
-        // Function to Combine Videos and Audio into a Single Output
-        function combineAndPlay(videoClips, audioDurations, segments, voice, videoOutput, audioOutput) {
-            let currentIndex = 0;
+        // Function to Combine Videos into a Single Output
+        async function combineVideos(videoClips, audioDurations, segments, voice, videoOutput, audioOutput) {
+            // Load FFmpeg.js
+            const ffmpeg = FFmpeg.createFFmpeg({ log: true });
+            await ffmpeg.load();
 
-            function playNextClip() {
-                if (currentIndex >= videoClips.length) {
-                    console.log('All clips played.');
-                    return; // Stop when all clips are played
-                }
-
-                const currentVideoUrl = videoClips[currentIndex];
-                const currentAudioDuration = audioDurations[currentIndex];
-
-                // Set the video source
-                videoOutput.src = currentVideoUrl;
-
-                // Wait for the video to load and start playing
-                videoOutput.oncanplay = () => {
-                    videoOutput.play();
-
-                    // Start audio playback when the video starts
-                    responsiveVoice.speak(segments[currentIndex], voice);
-
-                    // Wait for the video to finish before moving to the next clip
-                    videoOutput.onended = () => {
-                        currentIndex++;
-                        playNextClip(); // Play the next clip
-                    };
-                };
-
-                // Handle errors if the video fails to load
-                videoOutput.onerror = () => {
-                    console.error('Error loading video:', currentVideoUrl);
-                    currentIndex++;
-                    playNextClip(); // Skip to the next clip
-                };
+            // Download and process each video clip
+            for (let i = 0; i < videoClips.length; i++) {
+                const videoUrl = videoClips[i];
+                const response = await fetch(videoUrl);
+                const videoBlob = await response.blob();
+                ffmpeg.FS('writeFile', `clip${i}.mp4`, await blobToArrayBuffer(videoBlob));
             }
 
-            // Start playing the first clip
-            playNextClip();
+            // Combine videos using FFmpeg
+            const inputs = videoClips.map((_, i) => `clip${i}.mp4`).join('|');
+            await ffmpeg.run('-i', inputs, '-filter_complex', '[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[v][a]', '-map', '[v]', '-map', '[a]', 'output.mp4');
+
+            // Retrieve the combined video
+            const combinedVideoData = ffmpeg.FS('readFile', 'output.mp4');
+            const combinedVideoBlob = new Blob([combinedVideoData.buffer], { type: 'video/mp4' });
+            const combinedVideoUrl = URL.createObjectURL(combinedVideoBlob);
+
+            // Set the combined video as the source
+            videoOutput.src = combinedVideoUrl;
+
+            // Play the combined video
+            videoOutput.play();
+
+            // Synchronize audio with the combined video
+            for (let i = 0; i < segments.length; i++) {
+                setTimeout(() => {
+                    responsiveVoice.speak(segments[i], voice);
+                }, audioDurations.slice(0, i).reduce((a, b) => a + b, 0) * 1000);
+            }
+        }
+
+        // Helper Function to Convert Blob to ArrayBuffer
+        function blobToArrayBuffer(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(blob);
+            });
         }
     </script>
 </body>
