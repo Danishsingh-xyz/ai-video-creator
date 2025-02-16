@@ -69,10 +69,20 @@
             const videoOutput = document.getElementById("video-output"); // Get the video element
             const audioOutput = document.getElementById("audio-output"); // Get the audio element
 
+            // Clear previous video and audio
+            videoOutput.src = '';
+            audioOutput.src = '';
+
+            // Array to store video URLs and audio durations
+            const videoClips = [];
+            const audioDurations = [];
+
+            // Generate videos and audio for each segment
             for (const segment of segments) {
                 try {
                     // Step 1: Generate audio for the segment
-                    speakText(segment, voice);
+                    const audioDuration = await generateAudio(segment, voice);
+                    audioDurations.push(audioDuration);
 
                     // Step 2: Fetch a video from Pexels based on the segment
                     let videoUrl = await fetchPexelsVideo(segment);
@@ -82,29 +92,42 @@
                         videoUrl = await generateVideoWithRunwayML(segment);
                     }
 
-                    // Step 4: Set the video source and play it
+                    // Step 4: Store the video URL
                     if (videoUrl) {
-                        videoOutput.src = videoUrl; // Set the video source
-                        videoOutput.play(); // Play the video
+                        videoClips.push(videoUrl);
                     }
                 } catch (error) {
-                    console.error('Error generating video for segment:', error);
+                    console.error('Error generating video/audio for segment:', error);
                 }
             }
+
+            // Play videos and audio sequentially
+            playSequentially(videoClips, audioDurations, videoOutput);
         }
 
         // Function to Split Script into Smaller Segments
         function splitScript(script, maxLength) {
             const segments = [];
-            for (let i = 0; i < script.length; i += maxLength) {
-                segments.push(script.substring(i, i + maxLength)); // Split the script into chunks of `maxLength`
+            const lines = script.split('\n'); // Split by newlines
+            for (const line of lines) {
+                if (line.trim()) { // Ignore empty lines
+                    segments.push(line.trim());
+                }
             }
             return segments;
         }
 
-        // Function to Speak Text Using ResponsiveVoice
-        function speakText(text, voice) {
-            responsiveVoice.speak(text, voice); // Use ResponsiveVoice to convert text to speech
+        // Function to Generate Audio Using ResponsiveVoice
+        function generateAudio(text, voice) {
+            return new Promise((resolve) => {
+                responsiveVoice.speak(text, voice, {
+                    onend: () => {
+                        // Estimate audio duration based on text length
+                        const estimatedDuration = text.length * 0.08; // Approx. 0.08 seconds per character
+                        resolve(estimatedDuration);
+                    }
+                });
+            });
         }
 
         // Function to Fetch Video from Pexels
@@ -171,6 +194,34 @@
                 console.error('Error generating video with RunwayML:', error);
                 return null;
             }
+        }
+
+        // Function to Play Videos and Audio Sequentially
+        function playSequentially(videoClips, audioDurations, videoOutput) {
+            let currentIndex = 0;
+
+            function playNextClip() {
+                if (currentIndex >= videoClips.length) {
+                    console.log('All clips played.');
+                    return; // Stop when all clips are played
+                }
+
+                const currentVideoUrl = videoClips[currentIndex];
+                const currentAudioDuration = audioDurations[currentIndex];
+
+                // Set the video source and play it
+                videoOutput.src = currentVideoUrl;
+                videoOutput.play();
+
+                // Wait for the audio duration before playing the next clip
+                setTimeout(() => {
+                    currentIndex++;
+                    playNextClip(); // Play the next clip
+                }, currentAudioDuration * 1000); // Convert seconds to milliseconds
+            }
+
+            // Start playing the first clip
+            playNextClip();
         }
     </script>
 </body>
