@@ -108,7 +108,7 @@
             }
 
             // Play videos and audio sequentially
-            playSequentially(videoClips, audioDurations, videoOutput, audioOutput);
+            playSequentially(videoClips, audioDurations, videoOutput, audioOutput, segments, voice);
         }
 
         // Function to Split Script into Smaller Segments
@@ -203,7 +203,7 @@
         }
 
         // Function to Play Videos and Audio Sequentially
-        function playSequentially(videoClips, audioDurations, videoOutput, audioOutput) {
+        function playSequentially(videoClips, audioDurations, videoOutput, audioOutput, segments, voice) {
             let currentIndex = 0;
 
             function playNextClip() {
@@ -223,7 +223,7 @@
                     videoOutput.play();
 
                     // Start audio playback when the video starts
-                    responsiveVoice.speak(segments[currentIndex], voiceSelector.value);
+                    responsiveVoice.speak(segments[currentIndex], voice);
 
                     // Wait for the video to finish before moving to the next clip
                     videoOutput.onended = () => {
