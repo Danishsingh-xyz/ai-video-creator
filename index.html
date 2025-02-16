@@ -52,6 +52,32 @@
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
 
     <script>
+        async function fetchPexelsVideo(query) {
+            const response = await fetch("https://api.pexels.com/videos/search?query=" + encodeURIComponent(query), {
+                headers: { Authorization: "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50" }
+            });
+            const data = await response.json();
+            return data.videos.length > 0 ? data.videos[0].video_files[0].link : null;
+        }
+
+        async function fetchRunwayMLVideo(prompt) {
+            const response = await fetch("https://api.runwayml.com/v1/models/runwayml/stable-video-diffusion", {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer 02579204f812e8d4d4d4474d601c91d1de6fd28282c47289b4b10ed811d572216f7545c9d216e1edbf615670283ddba0e18783cade49a8bdb459297452b19d8d
+",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ prompt: prompt })
+            });
+            const data = await response.json();
+            return data.result ? data.result.video_url : null;
+        }
+
+        function speakText(text, voice) {
+            responsiveVoice.speak(text, voice);
+        }
+
         async function generateVideo() {
             const scriptText = document.getElementById("video-text").value;
             const voice = document.getElementById("voice-selector").value;
@@ -59,60 +85,25 @@
             const audioOutput = document.getElementById("audio-output");
             
             const scenes = scriptText.split('.');
-            let sceneVideos = [];
+            let finalVideoParts = [];
 
             for (let scene of scenes) {
                 let trimmedScene = scene.trim();
                 if (!trimmedScene) continue;
 
-                try {
-                    // Fetch real-world video from Pexels
-                    const pexelsResponse = await fetch("https://api.pexels.com/videos/search?query=" + encodeURIComponent(trimmedScene), {
-                        headers: { Authorization: "n4GV8QIdVLQ7UTPF0pAAlAJMiooQ8FHomkyIFiGJMyyEbq0fCNCgKO50" }
-                    });
-                    const pexelsData = await pexelsResponse.json();
-
-                    if (pexelsData.videos.length > 0) {
-                        sceneVideos.push(pexelsData.videos[0].video_files[0].link);
-                    } else {
-                        // If no Pexels video found, generate AI video with RunwayML
-                        const runwayResponse = await fetch("https://api.runwayml.com/v1/models/runwayml/gen-2/generate", {
-                            method: "POST",
-                            headers: {
-                                "Authorization": "Bearer key_02579204f812e8d4d4d4474d601c91d1de6fd28282c47289b4b10ed811d572216f7545c9d216e1edbf615670283ddba0e18783cade49a8bdb459297452b19d8d",
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({ prompt: trimmedScene })
-                        });
-                        const runwayData = await runwayResponse.json();
-
-                        if (runwayData.video) {
-                            sceneVideos.push(runwayData.video);
-                        }
-                    }
-                } catch (error) {
-                    console.error("❌ Error fetching video:", error);
+                speakText(trimmedScene, voice);
+                
+                let videoUrl = await fetchPexelsVideo(trimmedScene) || await fetchRunwayMLVideo(trimmedScene);
+                if (videoUrl) {
+                    finalVideoParts.push(videoUrl);
                 }
             }
 
-            // Merge videos into one final video
-            try {
-                const mergeResponse = await fetch("https://api.runwayml.com/v1/models/runwayml/video-merger", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": "Bearer key_02579204f812e8d4d4d4474d601c91d1de6fd28282c47289b4b10ed811d572216f7545c9d216e1edbf615670283ddba0e18783cade49a8bdb459297452b19d8d",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ videos: sceneVideos })
-                });
-                const mergeData = await mergeResponse.json();
-                
-                if (mergeData.final_video) {
-                    videoOutput.src = mergeData.final_video;
-                    videoOutput.play();
-                }
-            } catch (error) {
-                console.error("❌ Error merging videos:", error);
+            if (finalVideoParts.length > 0) {
+                videoOutput.src = finalVideoParts[0]; // Placeholder to show the first video
+                videoOutput.play();
+            } else {
+                console.error("No video could be generated.");
             }
         }
     </script>
