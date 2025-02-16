@@ -231,6 +231,13 @@
                         playNextClip(); // Play the next clip
                     };
                 };
+
+                // Handle errors if the video fails to load
+                videoOutput.onerror = () => {
+                    console.error('Error loading video:', currentVideoUrl);
+                    currentIndex++;
+                    playNextClip(); // Skip to the next clip
+                };
             }
 
             // Start playing the first clip
