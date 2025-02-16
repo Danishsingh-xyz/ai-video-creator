@@ -60,6 +60,8 @@
 
     <!-- ResponsiveVoice Library -->
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=bEpt2W2Y"></script>
+    <!-- FFmpeg.js Library -->
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.1/dist/ffmpeg.min.js"></script>
     <script>
         // API Keys (Replace with your actual keys)
         const apiKey = '064f2bfad5cb87c27c9a07c7badb26227af6c28773b6014ee61c1b32ef3b0bdaf7d7e180c9c08fcadec1047cc4245f71d5b09308f3f20434489034dbb519ff49'; // Replace with your RunwayML API key
@@ -204,38 +206,45 @@
 
         // Function to Combine Videos into a Single Output
         async function combineVideos(videoClips, audioDurations, segments, voice, videoOutput, audioOutput) {
-            // Load FFmpeg.js
-            const ffmpeg = FFmpeg.createFFmpeg({ log: true });
-            await ffmpeg.load();
+            // Initialize FFmpeg.js
+            const { createFFmpeg, fetchFile } = FFmpeg;
+            const ffmpeg = createFFmpeg({ log: true });
 
-            // Download and process each video clip
-            for (let i = 0; i < videoClips.length; i++) {
-                const videoUrl = videoClips[i];
-                const response = await fetch(videoUrl);
-                const videoBlob = await response.blob();
-                ffmpeg.FS('writeFile', `clip${i}.mp4`, await blobToArrayBuffer(videoBlob));
-            }
+            try {
+                // Load FFmpeg.js
+                await ffmpeg.load();
 
-            // Combine videos using FFmpeg
-            const inputs = videoClips.map((_, i) => `clip${i}.mp4`).join('|');
-            await ffmpeg.run('-i', inputs, '-filter_complex', '[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[v][a]', '-map', '[v]', '-map', '[a]', 'output.mp4');
+                // Download and process each video clip
+                for (let i = 0; i < videoClips.length; i++) {
+                    const videoUrl = videoClips[i];
+                    const response = await fetch(videoUrl);
+                    const videoBlob = await response.blob();
+                    ffmpeg.FS('writeFile', `clip${i}.mp4`, await blobToArrayBuffer(videoBlob));
+                }
 
-            // Retrieve the combined video
-            const combinedVideoData = ffmpeg.FS('readFile', 'output.mp4');
-            const combinedVideoBlob = new Blob([combinedVideoData.buffer], { type: 'video/mp4' });
-            const combinedVideoUrl = URL.createObjectURL(combinedVideoBlob);
+                // Combine videos using FFmpeg
+                const inputs = videoClips.map((_, i) => `clip${i}.mp4`).join('|');
+                await ffmpeg.run('-i', inputs, '-filter_complex', '[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[v][a]', '-map', '[v]', '-map', '[a]', 'output.mp4');
 
-            // Set the combined video as the source
-            videoOutput.src = combinedVideoUrl;
+                // Retrieve the combined video
+                const combinedVideoData = ffmpeg.FS('readFile', 'output.mp4');
+                const combinedVideoBlob = new Blob([combinedVideoData.buffer], { type: 'video/mp4' });
+                const combinedVideoUrl = URL.createObjectURL(combinedVideoBlob);
 
-            // Play the combined video
-            videoOutput.play();
+                // Set the combined video as the source
+                videoOutput.src = combinedVideoUrl;
 
-            // Synchronize audio with the combined video
-            for (let i = 0; i < segments.length; i++) {
-                setTimeout(() => {
-                    responsiveVoice.speak(segments[i], voice);
-                }, audioDurations.slice(0, i).reduce((a, b) => a + b, 0) * 1000);
+                // Play the combined video
+                videoOutput.play();
+
+                // Synchronize audio with the combined video
+                for (let i = 0; i < segments.length; i++) {
+                    setTimeout(() => {
+                        responsiveVoice.speak(segments[i], voice);
+                    }, audioDurations.slice(0, i).reduce((a, b) => a + b, 0) * 1000);
+                }
+            } catch (error) {
+                console.error('Error combining videos:', error);
             }
         }
 
