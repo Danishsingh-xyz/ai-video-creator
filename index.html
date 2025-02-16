@@ -83,7 +83,7 @@
             for (const segment of segments) {
                 try {
                     // Step 1: Generate audio for the segment
-                    const audioDuration = await generateAudio(segment);
+                    const audioDuration = await generateAudio(segment, voice); // Pass the selected voice
                     audioDurations.push(audioDuration);
 
                     // Step 2: Fetch a video from Pexels based on the segment
@@ -120,12 +120,12 @@
         }
 
         // Function to Generate Audio Using Backend Proxy
-        function generateAudio(text) {
+        function generateAudio(text, voice) {
             return new Promise((resolve) => {
                 const audio = new Audio();
 
-                // Call the backend proxy
-                audio.src = `http://localhost:5000/synthesize?text=${encodeURIComponent(text)}`;
+                // Call the backend proxy with the selected voice
+                audio.src = `http://localhost:5000/synthesize?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(voice)}`;
 
                 audio.oncanplay = () => {
                     audio.play();
@@ -228,7 +228,7 @@
                     // Start audio playback when the video starts
                     setTimeout(() => {
                         const audio = new Audio();
-                        audio.src = `http://localhost:5000/synthesize?text=${encodeURIComponent(segments[currentIndex])}`;
+                        audio.src = `http://localhost:5000/synthesize?text=${encodeURIComponent(segments[currentIndex])}&voice=${encodeURIComponent(document.getElementById("voice-selector").value)}`;
                         audio.play();
                     }, 0);
 
