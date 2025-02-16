@@ -57,6 +57,10 @@
     </div>
 
     <script>
+        // API Keys (Your Provided Keys)
+        const apiKey = '064f2bfad5cb87c27c9a07c7badb26227af6c28773b6014ee61c1b32ef3b0bdaf7d7e180c9c08fcadec1047cc4245f71d5b09308f3f20434489034dbb519ff49'; // RunwayML API Key
+        const pexelsApiKey = 'c5tmYH9MJcwp5JBmLAms2dxZO89Cit3yxSr1QgyfNUyBfl72e6G5huVd'; // Pexels API Key
+
         // Main Function to Generate Video
         async function generateLongTermVideo() {
             const scriptText = document.getElementById("video-text").value; // Get the script from the textarea
@@ -146,7 +150,7 @@
                 const response = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(sanitizedQuery)}`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': 'c5tmYH9MJcwp5JBmLAms2dxZO89Cit3yxSr1QgyfNUyBfl72e6G5huVd' // Replace with your Pexels API key
+                        'Authorization': pexelsApiKey // Include the Pexels API key in the request
                     }
                 });
 
@@ -177,7 +181,7 @@
                 const response = await fetch("https://api.runwayml.com/v1/models/runwayml/text-to-video:1", {
                     method: "POST",
                     headers: {
-                        "Authorization": `Bearer 064f2bfad5cb87c27c9a07c7badb26227af6c28773b6014ee61c1b32ef3b0bdaf7d7e180c9c08fcadec1047cc4245f71d5b09308f3f20434489034dbb519ff49`, // Replace with your RunwayML API key
+                        "Authorization": `Bearer ${apiKey}`, // Include the RunwayML API key in the request
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
