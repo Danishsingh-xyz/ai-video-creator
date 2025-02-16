@@ -63,9 +63,9 @@
     <!-- FFmpeg.js Library -->
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.1/dist/ffmpeg.min.js"></script>
     <script>
-        // API Keys (Replace with your actual keys)
-        const apiKey = '064f2bfad5cb87c27c9a07c7badb26227af6c28773b6014ee61c1b32ef3b0bdaf7d7e180c9c08fcadec1047cc4245f71d5b09308f3f20434489034dbb519ff49'; // Replace with your RunwayML API key
-        const pexelsApiKey = 'c5tmYH9MJcwp5JBmLAms2dxZO89Cit3yxSr1QgyfNUyBfl72e6G5huVd'; // Replace with your Pexels API key
+        // API Keys (Your Provided Keys)
+        const apiKey = '064f2bfad5cb87c27c9a07c7badb26227af6c28773b6014ee61c1b32ef3b0bdaf7d7e180c9c08fcadec1047cc4245f71d5b09308f3f20434489034dbb519ff49'; // RunwayML API Key
+        const pexelsApiKey = 'c5tmYH9MJcwp5JBmLAms2dxZO89Cit3yxSr1QgyfNUyBfl72e6G5huVd'; // Pexels API Key
 
         // Main Function to Generate Video
         async function generateLongTermVideo() {
@@ -206,13 +206,21 @@
 
         // Function to Combine Videos into a Single Output
         async function combineVideos(videoClips, audioDurations, segments, voice, videoOutput, audioOutput) {
+            // Check if FFmpeg is defined
+            if (typeof FFmpeg === 'undefined') {
+                console.error('FFmpeg.js is not loaded. Please check the CDN link.');
+                return;
+            }
+
             // Initialize FFmpeg.js
             const { createFFmpeg, fetchFile } = FFmpeg;
             const ffmpeg = createFFmpeg({ log: true });
 
             try {
                 // Load FFmpeg.js
+                console.log('Loading FFmpeg...');
                 await ffmpeg.load();
+                console.log('FFmpeg loaded successfully.');
 
                 // Download and process each video clip
                 for (let i = 0; i < videoClips.length; i++) {
