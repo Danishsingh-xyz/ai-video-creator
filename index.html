@@ -22,6 +22,12 @@
         .output-section {
             margin-top: 20px;
         }
+        /* Standardize video aspect ratio */
+        video {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9; /* Enforce 16:9 aspect ratio */
+        }
     </style>
 </head>
 <body>
@@ -102,7 +108,7 @@
             }
 
             // Play videos and audio sequentially
-            playSequentially(videoClips, audioDurations, videoOutput);
+            playSequentially(videoClips, audioDurations, videoOutput, audioOutput);
         }
 
         // Function to Split Script into Smaller Segments
@@ -197,7 +203,7 @@
         }
 
         // Function to Play Videos and Audio Sequentially
-        function playSequentially(videoClips, audioDurations, videoOutput) {
+        function playSequentially(videoClips, audioDurations, videoOutput, audioOutput) {
             let currentIndex = 0;
 
             function playNextClip() {
@@ -209,15 +215,22 @@
                 const currentVideoUrl = videoClips[currentIndex];
                 const currentAudioDuration = audioDurations[currentIndex];
 
-                // Set the video source and play it
+                // Set the video source
                 videoOutput.src = currentVideoUrl;
-                videoOutput.play();
 
-                // Wait for the audio duration before playing the next clip
-                setTimeout(() => {
-                    currentIndex++;
-                    playNextClip(); // Play the next clip
-                }, currentAudioDuration * 1000); // Convert seconds to milliseconds
+                // Wait for the video to load and start playing
+                videoOutput.oncanplay = () => {
+                    videoOutput.play();
+
+                    // Start audio playback when the video starts
+                    responsiveVoice.speak(segments[currentIndex], voiceSelector.value);
+
+                    // Wait for the video to finish before moving to the next clip
+                    videoOutput.onended = () => {
+                        currentIndex++;
+                        playNextClip(); // Play the next clip
+                    };
+                };
             }
 
             // Start playing the first clip
