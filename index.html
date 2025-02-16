@@ -107,8 +107,8 @@
                 }
             }
 
-            // Play videos and audio sequentially
-            playSequentially(videoClips, audioDurations, videoOutput, audioOutput, segments, voice);
+            // Combine videos and audio into a single cohesive output
+            combineAndPlay(videoClips, audioDurations, segments, voice, videoOutput, audioOutput);
         }
 
         // Function to Split Script into Smaller Segments
@@ -202,8 +202,8 @@
             }
         }
 
-        // Function to Play Videos and Audio Sequentially
-        function playSequentially(videoClips, audioDurations, videoOutput, audioOutput, segments, voice) {
+        // Function to Combine Videos and Audio into a Single Output
+        function combineAndPlay(videoClips, audioDurations, segments, voice, videoOutput, audioOutput) {
             let currentIndex = 0;
 
             function playNextClip() {
