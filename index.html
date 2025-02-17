@@ -56,8 +56,8 @@
         <audio id="audio-output" controls></audio>
     </div>
 
-    <!-- Include Coqui TTS.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@coqui-tts/tts/dist/tts.min.js"></script>
+    <!-- Include ResponsiveVoice -->
+    <script src="https://code.responsivevoice.org/responsivevoice.js"></script>
 
     <script>
         // API Keys (Your Provided Keys)
@@ -120,27 +120,29 @@
             return segments;
         }
 
-        // Function to Generate Audio Using Coqui TTS.js
-        async function generateAudio(text, voice) {
-            try {
-                console.log(`Generating audio for text: "${text}" with voice: ${voice}`);
+        // Function to Generate Audio Using ResponsiveVoice
+        function generateAudio(text, voice) {
+            return new Promise((resolve) => {
+                // Map voice names to ResponsiveVoice voices
+                const voiceMap = {
+                    Joanna: 'US English Female', // Female voice
+                    Matthew: 'US English Male', // Male voice
+                    Salli: 'US English Female' // Female voice
+                };
 
-                // Initialize Coqui TTS
-                const tts = new window.TTS();
+                const selectedVoice = voiceMap[voice] || 'US English Female'; // Default to female voice
 
-                // Load the desired model (e.g., English male/female voices)
-                await tts.loadModel('tts_models/en/ljspeech/tacotron2-DDC');
-
-                // Generate audio
-                const audioBlob = await tts.synthesize(text);
-
-                // Create an audio element and play the generated audio
-                const audioUrl = URL.createObjectURL(audioBlob);
-                const audio = new Audio(audioUrl);
-                audio.play();
-            } catch (error) {
-                console.error('Error generating audio with Coqui TTS:', error);
-            }
+                // Play audio using ResponsiveVoice
+                responsiveVoice.speak(text, selectedVoice, {
+                    onend: () => {
+                        resolve(); // Resolve when the audio finishes playing
+                    },
+                    onerror: () => {
+                        console.error('Error playing audio with ResponsiveVoice.');
+                        resolve(); // Resolve even if there's an error
+                    }
+                });
+            });
         }
 
         // Function to Fetch Video from Pexels
