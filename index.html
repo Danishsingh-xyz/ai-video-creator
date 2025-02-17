@@ -56,6 +56,9 @@
         <audio id="audio-output" controls></audio>
     </div>
 
+    <!-- Include Coqui TTS.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@coqui-tts/tts/dist/tts.min.js"></script>
+
     <script>
         // API Keys (Your Provided Keys)
         const apiKey = '064f2bfad5cb87c27c9a07c7badb26227af6c28773b6014ee61c1b32ef3b0bdaf7d7e180c9c08fcadec1047cc4245f71d5b09308f3f20434489034dbb519ff49'; // RunwayML API Key
@@ -75,16 +78,14 @@
             videoOutput.src = '';
             audioOutput.src = '';
 
-            // Array to store video URLs and audio durations
+            // Array to store video URLs
             const videoClips = [];
-            const audioDurations = [];
 
             // Generate videos and audio for each segment
             for (const segment of segments) {
                 try {
                     // Step 1: Generate audio for the segment
-                    const audioDuration = await generateAudio(segment, voice); // Pass the selected voice
-                    audioDurations.push(audioDuration);
+                    await generateAudio(segment, voice); // Pass the selected voice
 
                     // Step 2: Fetch a video from Pexels based on the segment
                     let videoUrl = await fetchPexelsVideo(segment);
@@ -104,7 +105,7 @@
             }
 
             // Combine videos into a single cohesive output
-            combineVideos(videoClips, audioDurations, segments, videoOutput, audioOutput);
+            combineVideos(videoClips, segments, videoOutput, audioOutput);
         }
 
         // Function to Split Script into Smaller Segments
@@ -119,24 +120,27 @@
             return segments;
         }
 
-        // Function to Generate Audio Using Backend Proxy
-        function generateAudio(text, voice) {
-            return new Promise((resolve) => {
-                const audio = new Audio();
+        // Function to Generate Audio Using Coqui TTS.js
+        async function generateAudio(text, voice) {
+            try {
+                console.log(`Generating audio for text: "${text}" with voice: ${voice}`);
 
-                // Call the backend proxy with the selected voice and cache buster
-                audio.src = `http://localhost:5000/synthesize?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(voice)}&cacheBuster=${Date.now()}`;
+                // Initialize Coqui TTS
+                const tts = new window.TTS();
 
-                audio.oncanplay = () => {
-                    audio.play();
-                    resolve(audio.duration); // Resolve with the audio duration
-                };
+                // Load the desired model (e.g., English male/female voices)
+                await tts.loadModel('tts_models/en/ljspeech/tacotron2-DDC');
 
-                audio.onerror = () => {
-                    console.error('Error loading audio.');
-                    resolve(0); // Resolve with 0 if there's an error
-                };
-            });
+                // Generate audio
+                const audioBlob = await tts.synthesize(text);
+
+                // Create an audio element and play the generated audio
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+            } catch (error) {
+                console.error('Error generating audio with Coqui TTS:', error);
+            }
         }
 
         // Function to Fetch Video from Pexels
@@ -206,7 +210,7 @@
         }
 
         // Function to Combine Videos into a Single Output
-        function combineVideos(videoClips, audioDurations, segments, videoOutput, audioOutput) {
+        function combineVideos(videoClips, segments, videoOutput, audioOutput) {
             let currentIndex = 0;
 
             function playNextClip() {
@@ -216,7 +220,6 @@
                 }
 
                 const currentVideoUrl = videoClips[currentIndex];
-                const currentAudioDuration = audioDurations[currentIndex];
 
                 // Set the video source
                 videoOutput.src = currentVideoUrl;
@@ -227,20 +230,27 @@
 
                     // Start audio playback when the video starts
                     setTimeout(() => {
-                        const audio = new Audio();
-                        audio.src = `http://localhost:5000/synthesize?text=${encodeURIComponent(segments[currentIndex])}&voice=${encodeURIComponent(document.getElementById("voice-selector").value)}&cacheBuster=${Date.now()}`;
-
-                        // Play audio only after the video starts
-                        audio.oncanplay = () => {
-                            audio.play();
-                        };
-
-                        audio.onerror = () => {
-                            console.error('Error loading audio.');
-                        };
+                        generateAudio(segments[currentIndex], document.getElementById("voice-selector").value);
                     }, 0);
 
                     // Wait for the video to finish before moving to the next clip
                     videoOutput.onended = () => {
                         currentIndex++;
-                        playNextClip(); // Play the
+                        playNextClip(); // Play the next clip
+                    };
+                };
+
+                // Handle errors if the video fails to load
+                videoOutput.onerror = () => {
+                    console.error('Error loading video:', currentVideoUrl);
+                    currentIndex++;
+                    playNextClip(); // Skip to the next clip
+                };
+            }
+
+            // Start playing the first clip
+            playNextClip();
+        }
+    </script>
+</body>
+</html>
