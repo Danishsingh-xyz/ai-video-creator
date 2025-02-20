@@ -52,8 +52,6 @@
             <option value="Joanna">Joanna (Female)</option>
             <option value="Matthew">Matthew (Male)</option>
             <option value="Salli">Salli (Female)</option>
-            <option value="Multilingual">Multilingual (Custom)</option>
-            <option value="Custom">Custom Voice (Trained Model)</option>
         </select>
         <label for="video-source">Video Source:</label>
         <select id="video-source">
@@ -72,6 +70,8 @@
 
     <script>
         async function generateVideo() {
+            console.log("Generating video...");
+
             // Get input values
             const script = document.getElementById("script-input").value;
             const voice = document.getElementById("voice-selector").value;
@@ -83,6 +83,7 @@
             }
 
             try {
+                console.log("Step 1: Generating audio...");
                 // Step 1: Generate Audio
                 const audioResponse = await fetch('http://127.0.0.1:5000/generate-audio', {
                     method: 'POST',
@@ -91,9 +92,12 @@
                 });
 
                 if (!audioResponse.ok) {
+                    console.error("Error generating audio:", audioResponse.statusText);
                     alert('Error generating audio!');
                     return;
                 }
+
+                console.log("Audio generated successfully!");
 
                 // Get the audio file as a Blob
                 const audioBlob = await audioResponse.blob();
@@ -104,6 +108,7 @@
                 audioOutput.src = audioUrl;
                 audioOutput.play();
 
+                console.log("Step 2: Fetching video...");
                 // Step 2: Fetch or Generate Video
                 let videoResponse;
 
@@ -114,9 +119,12 @@
                 }
 
                 if (!videoResponse.ok) {
+                    console.error("Error fetching video:", videoResponse.statusText);
                     alert('Error fetching video!');
                     return;
                 }
+
+                console.log("Video fetched successfully!");
 
                 const videoBlob = await videoResponse.blob();
                 const videoUrl = URL.createObjectURL(videoBlob);
