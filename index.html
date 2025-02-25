@@ -74,7 +74,7 @@
 
             // Get input values
             const script = document.getElementById("script-input").value;
-            const voice = document.getElementById("voice-selector").value;
+            const voice = document.getElementById("voice-selector").value; // Get selected voice
             const videoSource = document.getElementById("video-source").value;
 
             if (!script.trim()) {
@@ -86,7 +86,7 @@
                 const response = await fetch('http://127.0.0.1:5000/generate-video', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: script, video_source: videoSource })
+                    body: JSON.stringify({ text: script, voice: voice, video_source: videoSource }) // Include voice in payload
                 });
 
                 if (!response.ok) {
