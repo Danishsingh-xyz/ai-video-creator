@@ -48,6 +48,7 @@
 
         <!-- Input Section -->
         <textarea id="script-input" placeholder="Enter Script for Video Generation:"></textarea>
+        <label for="voice-selector">Select Voice:</label>
         <select id="voice-selector">
             <option value="Joanna">Joanna (Female)</option>
             <option value="Matthew">Matthew (Male)</option>
@@ -87,11 +88,11 @@
             console.log("Generating video...");
 
             // Get input values
-            const script = document.getElementById("script-input").value;
+            const script = document.getElementById("script-input").value.trim();
             const voice = document.getElementById("voice-selector").value; // Get selected voice
             const videoSource = document.getElementById("video-source").value;
 
-            if (!script.trim()) {
+            if (!script) {
                 alert("Please enter a script for video generation!");
                 return;
             }
@@ -115,6 +116,10 @@
                 // Update the video element
                 const videoOutput = document.getElementById("video-output");
                 videoOutput.src = videoUrl;
+
+                // Optionally, update the audio element if needed
+                const audioOutput = document.getElementById("audio-output");
+                audioOutput.src = videoUrl; // Assuming the generated video includes audio
             } catch (error) {
                 console.error("An error occurred:", error.message || error);
                 alert("An error occurred while generating the video. Please try again.");
