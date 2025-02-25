@@ -53,14 +53,6 @@
             <option value="Joanna">Joanna (Female)</option>
             <option value="Matthew">Matthew (Male)</option>
             <option value="Salli">Salli (Female)</option>
-            <option value="Amy">Amy (Female)</option>
-            <option value="Brian">Brian (Male)</option>
-            <option value="Emma">Emma (Female)</option>
-        </select>
-        <label for="video-source">Video Source:</label>
-        <select id="video-source">
-            <option value="pexels">Real World (Pexels)</option>
-            <option value="ai">AI Generated</option>
         </select>
         <button onclick="generateVideo()">Generate Video</button>
 
@@ -79,7 +71,6 @@
             // Get input values
             const script = document.getElementById("script-input").value.trim();
             const voice = document.getElementById("voice-selector").value; // Get selected voice
-            const videoSource = document.getElementById("video-source").value;
 
             if (!script) {
                 alert("Please enter a script for video generation!");
@@ -92,7 +83,7 @@
                 const response = await fetch('http://127.0.0.1:5000/generate-video', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: script, voice: voice, video_source: videoSource }) // Include voice in payload
+                    body: JSON.stringify({ text: script, voice: voice }) // Include voice in payload
                 });
 
                 if (!response.ok) {
