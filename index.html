@@ -56,17 +56,6 @@
             <option value="Amy">Amy (Female)</option>
             <option value="Brian">Brian (Male)</option>
             <option value="Emma">Emma (Female)</option>
-            <option value="Geraint">Geraint (Male)</option>
-            <option value="Ivy">Ivy (Female)</option>
-            <option value="Joey">Joey (Male)</option>
-            <option value="Justin">Justin (Male)</option>
-            <option value="Kendra">Kendra (Female)</option>
-            <option value="Kimberly">Kimberly (Female)</option>
-            <option value="Nicole">Nicole (Female)</option>
-            <option value="Raveena">Raveena (Female)</option>
-            <option value="Russell">Russell (Male)</option>
-            <option value="Vicki">Vicki (Female)</option>
-            <option value="Zira">Zira (Female)</option>
         </select>
         <label for="video-source">Video Source:</label>
         <select id="video-source">
@@ -96,6 +85,8 @@
                 alert("Please enter a script for video generation!");
                 return;
             }
+
+            console.log(`Selected Voice: ${voice}`); // Debug log
 
             try {
                 const response = await fetch('http://127.0.0.1:5000/generate-video', {
