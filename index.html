@@ -8,37 +8,48 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-        }
-        h1 {
             text-align: center;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
+        h1 {
+            color: #333;
         }
         textarea {
-            width: 100%;
+            width: 80%;
             height: 100px;
             margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
         select {
-            padding: 5px;
-            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
         button {
             padding: 10px 20px;
             font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
-            display: block;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        video, audio {
+            width: 80%;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .container {
+            max-width: 600px;
             margin: 0 auto;
-        }
-        video {
-            width: 100%;
-            margin-top: 20px;
-        }
-        audio {
-            width: 100%;
-            margin-top: 20px;
         }
     </style>
 </head>
@@ -48,12 +59,15 @@
 
         <!-- Input Section -->
         <textarea id="script-input" placeholder="Enter Script for Video Generation:"></textarea>
+        <br>
         <label for="voice-selector">Select Voice:</label>
         <select id="voice-selector">
-            <option value="Joanna">Joanna (Female)</option>
-            <option value="Matthew">Matthew (Male)</option>
-            <option value="Salli">Salli (Female)</option>
+            <option value="Joanna">Joanna (English Female)</option>
+            <option value="Matthew">Matthew (English Male)</option>
+            <option value="Salli">Salli (Portuguese Female)</option>
+            <option value="Pedro">Pedro (Portuguese Male)</option>
         </select>
+        <br>
         <button onclick="generateVideo()">Generate Video</button>
 
         <!-- Output Section -->
@@ -70,20 +84,18 @@
 
             // Get input values
             const script = document.getElementById("script-input").value.trim();
-            const voice = document.getElementById("voice-selector").value; // Get selected voice
+            const voice = document.getElementById("voice-selector").value;
 
             if (!script) {
                 alert("Please enter a script for video generation!");
                 return;
             }
 
-            console.log(`Selected Voice: ${voice}`); // Debug log
-
             try {
                 const response = await fetch('http://127.0.0.1:5000/generate-video', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: script, voice: voice }) // Include voice in payload
+                    body: JSON.stringify({ text: script, voice: voice })
                 });
 
                 if (!response.ok) {
