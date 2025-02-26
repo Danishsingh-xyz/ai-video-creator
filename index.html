@@ -41,7 +41,7 @@
         button:hover {
             background-color: #0056b3;
         }
-        video, audio {
+        video {
             width: 80%;
             margin-top: 20px;
             border: 1px solid #ccc;
@@ -65,6 +65,7 @@
             <option value="Joanna">Joanna (English Female)</option>
             <option value="Matthew">Matthew (English Male)</option>
             <option value="Salli">Salli (Portuguese Female)</option>
+            <option value="Pedro">Pedro (Portuguese Male)</option>
         </select>
         <br>
         <button onclick="generateVideo()">Generate Video</button>
@@ -72,9 +73,6 @@
         <!-- Output Section -->
         <h3>Generated Video:</h3>
         <video id="video-output" controls></video>
-
-        <h3>Generated Audio:</h3>
-        <audio id="audio-output" controls></audio>
     </div>
 
     <script>
@@ -109,10 +107,6 @@
                 // Update the video element
                 const videoOutput = document.getElementById("video-output");
                 videoOutput.src = videoUrl;
-
-                // Optionally, update the audio element if needed
-                const audioOutput = document.getElementById("audio-output");
-                audioOutput.src = videoUrl; // Assuming the generated video includes audio
             } catch (error) {
                 console.error("An error occurred:", error.message || error);
                 alert("An error occurred while generating the video. Please try again.");
