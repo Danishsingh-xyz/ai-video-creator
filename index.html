@@ -58,7 +58,7 @@
         <h1>AI Video Creator</h1>
 
         <!-- Input Section -->
-        <textarea id="script-input" placeholder="Enter Script for Video Generation:"></textarea>
+        <textarea id="script-input" placeholder="Enter Script for Video Generation"></textarea>
         <br>
         <label for="voice-selector">Select Voice:</label>
         <select id="voice-selector">
@@ -78,7 +78,6 @@
     <script>
         async function generateVideo() {
             console.log("Generating video...");
-
             // Get input values
             const script = document.getElementById("script-input").value.trim();
             const voice = document.getElementById("voice-selector").value;
