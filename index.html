@@ -51,6 +51,20 @@
             max-width: 600px;
             margin: 0 auto;
         }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007BFF;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -70,6 +84,9 @@
         <br>
         <button onclick="generateVideo()">Generate Video</button>
 
+        <!-- Loading Indicator -->
+        <div class="loader" id="loader"></div>
+
         <!-- Output Section -->
         <h3>Generated Video:</h3>
         <video id="video-output" controls></video>
@@ -78,37 +95,50 @@
     <script>
         async function generateVideo() {
             console.log("Generating video...");
+
+            // Show loader
+            const loader = document.getElementById("loader");
+            loader.style.display = "block";
+
             // Get input values
             const script = document.getElementById("script-input").value.trim();
             const voice = document.getElementById("voice-selector").value;
 
             if (!script) {
                 alert("Please enter a script for video generation!");
+                loader.style.display = "none"; // Hide loader
                 return;
             }
 
             try {
-                const response = await fetch('http://127.0.0.1:5000/generate-video', {
+                // Send request to backend
+                const response = await fetch('http://127.0.0.1:5000/api/generate-video', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: script, voice: voice })
+                    body: JSON.stringify({ script: script, voice: voice })
                 });
 
                 if (!response.ok) {
                     console.error("Error generating video:", response.statusText);
                     alert('Error generating video!');
+                    loader.style.display = "none"; // Hide loader
                     return;
                 }
 
+                // Get video blob
                 const blob = await response.blob();
                 const videoUrl = URL.createObjectURL(blob);
 
                 // Update the video element
                 const videoOutput = document.getElementById("video-output");
                 videoOutput.src = videoUrl;
+                videoOutput.style.display = "block";
             } catch (error) {
                 console.error("An error occurred:", error.message || error);
                 alert("An error occurred while generating the video. Please try again.");
+            } finally {
+                // Hide loader
+                loader.style.display = "none";
             }
         }
     </script>
