@@ -9,20 +9,32 @@
             font-family: Arial, sans-serif;
             margin: 20px;
             text-align: center;
-        }
-        h1 {
+            background-color: #f4f4f9;
             color: #333;
         }
+        h1 {
+            color: #007BFF;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
         textarea {
-            width: 80%;
+            width: 90%;
             height: 100px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            resize: vertical;
         }
         select {
+            width: 90%;
             padding: 10px;
             font-size: 16px;
             margin-bottom: 20px;
@@ -37,19 +49,16 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
         button:hover {
             background-color: #0056b3;
         }
         video {
-            width: 80%;
+            width: 90%;
             margin-top: 20px;
             border: 1px solid #ccc;
             border-radius: 5px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
         }
         .loader {
             border: 5px solid #f3f3f3;
@@ -65,6 +74,10 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -72,7 +85,7 @@
         <h1>AI Video Creator</h1>
 
         <!-- Input Section -->
-        <textarea id="script-input" placeholder="Enter Script for Video Generation"></textarea>
+        <textarea id="script-input" placeholder="Enter your script here..."></textarea>
         <br>
         <label for="voice-selector">Select Voice:</label>
         <select id="voice-selector">
@@ -87,6 +100,9 @@
         <!-- Loading Indicator -->
         <div class="loader" id="loader"></div>
 
+        <!-- Error Message -->
+        <div class="error" id="error-message"></div>
+
         <!-- Output Section -->
         <h3>Generated Video:</h3>
         <video id="video-output" controls></video>
@@ -96,17 +112,19 @@
         async function generateVideo() {
             console.log("Generating video...");
 
-            // Show loader
+            // Show loader and hide error message
             const loader = document.getElementById("loader");
+            const errorMessage = document.getElementById("error-message");
             loader.style.display = "block";
+            errorMessage.textContent = "";
 
             // Get input values
             const script = document.getElementById("script-input").value.trim();
             const voice = document.getElementById("voice-selector").value;
 
             if (!script) {
-                alert("Please enter a script for video generation!");
-                loader.style.display = "none"; // Hide loader
+                errorMessage.textContent = "Please enter a script for video generation!";
+                loader.style.display = "none";
                 return;
             }
 
@@ -119,10 +137,7 @@
                 });
 
                 if (!response.ok) {
-                    console.error("Error generating video:", response.statusText);
-                    alert('Error generating video!');
-                    loader.style.display = "none"; // Hide loader
-                    return;
+                    throw new Error("Error generating video: " + response.statusText);
                 }
 
                 // Get video blob
@@ -135,7 +150,7 @@
                 videoOutput.style.display = "block";
             } catch (error) {
                 console.error("An error occurred:", error.message || error);
-                alert("An error occurred while generating the video. Please try again.");
+                errorMessage.textContent = "An error occurred while generating the video. Please try again.";
             } finally {
                 // Hide loader
                 loader.style.display = "none";
